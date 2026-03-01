@@ -43,7 +43,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
 
 // Default dashboard routes for each role
 export const ROLE_DASHBOARDS: Record<UserRole, string> = {
-  [ROLES.SUPER_ADMIN]: '/admin',
+  [ROLES.SUPER_ADMIN]: '/super-admin',
   [ROLES.ADMIN]: '/admin',
   [ROLES.LOCATION_ADMIN]: '/location-admin',
   [ROLES.DOCTOR]: '/doctor',
@@ -184,7 +184,8 @@ export function getAssignableRoles(userRole: UserRole): UserRole[] {
 
 // Route access configuration
 export const ROUTE_ACCESS: Record<string, UserRole[]> = {
-  '/admin': [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+  '/super-admin': [ROLES.SUPER_ADMIN],
+  '/admin': [ROLES.ADMIN],
   '/location-admin': [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.LOCATION_ADMIN],
   '/doctor': [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.LOCATION_ADMIN, ROLES.DOCTOR],
   '/patient': [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.LOCATION_ADMIN, ROLES.DOCTOR, ROLES.PATIENT],

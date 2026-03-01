@@ -144,9 +144,15 @@ export async function authMiddleware(request: NextRequest) {
     return NextResponse.redirect(dashboardUrl);
   }
 
+  // Super admin must use /super-admin, not /admin
+  if (userRole === ROLES.SUPER_ADMIN && pathname.startsWith('/admin')) {
+    return NextResponse.redirect(new URL('/super-admin', request.url));
+  }
+
   // Check role-based access for dashboard routes
   if (
     pathname.startsWith('/admin') ||
+    pathname.startsWith('/super-admin') ||
     pathname.startsWith('/location-admin') ||
     pathname.startsWith('/patient')
   ) {
