@@ -177,7 +177,7 @@ NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
    ```bash
    npm run build   # test locally first
    ```
-   Push to `main` to trigger automatic deployment.
+   Push to `main` to trigger automatic Vercel deployment.
 
 5. **Cron jobs** (appointment reminders)
    - Set `CRON_SECRET` in Vercel and add to your cron endpoint for auth
