@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { AdminContentSkeleton } from '@/components/admin/AdminSkeletons';
 import { format, parseISO, isToday, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
 interface Payment {
@@ -121,11 +122,7 @@ export default function PaymentsPage() {
   });
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-      </div>
-    );
+    return <AdminContentSkeleton variant="table" />;
   }
 
   return (

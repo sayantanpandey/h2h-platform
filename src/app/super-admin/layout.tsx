@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { AdminContactNotifications } from '@/components/admin/AdminContactNotifications';
 import { AdminBookingNotifications } from '@/components/admin/AdminBookingNotifications';
 import { AdminNotificationDrawer } from '@/components/admin/AdminNotificationDrawer';
+import { PortalSidebarBrand } from '@/components/shared/PortalSidebarBrand';
+import { AdminLayoutSkeleton } from '@/components/admin/AdminSkeletons';
+import { AdminProfilePhotoDialog } from '@/components/admin/AdminProfilePhotoDialog';
 import { 
   LayoutDashboard, 
   Settings, 
@@ -146,11 +149,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-      </div>
-    );
+    return <AdminLayoutSkeleton />;
   }
 
   // Render login page without admin layout
@@ -207,15 +206,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         } lg:translate-x-0 flex flex-col`}
       >
         {/* Header */}
-        <div className="h-14 flex items-center justify-between px-4 border-b border-white/10 shrink-0">
-          <Link href="/super-admin" className="flex items-center gap-2.5 min-w-0" onClick={() => setSidebarOpen(false)}>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-teal-400">
-              <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#1a2e35]" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
-            </div>
-            <span className="font-semibold text-[15px] text-white tracking-tight truncate">H2H Admin</span>
-          </Link>
+        <div className="h-16 flex items-center justify-between gap-2 px-4 border-b border-white/10 shrink-0">
+          <PortalSidebarBrand
+            variant="admin"
+            href="/super-admin"
+            onNavigate={() => setSidebarOpen(false)}
+            className="min-w-0 flex-1"
+          />
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden shrink-0 p-2 -mr-1 text-gray-400 hover:text-white rounded-md hover:bg-white/10 transition-colors"
@@ -262,6 +259,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <span className="inline-block mt-1.5 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-[11px] font-medium capitalize">
               {user?.role?.replace('_', ' ')}
             </span>
+            {user?.id && (
+              <AdminProfilePhotoDialog
+                userId={user.id}
+                email={user.email}
+                fullName={user.full_name}
+                avatarUrl={user.avatar_url}
+                onSaved={(url) => setUser((prev: typeof user) => (prev ? { ...prev, avatar_url: url } : prev))}
+              />
+            )}
           </div>
           <button
             onClick={handleLogout}

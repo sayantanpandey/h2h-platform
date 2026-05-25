@@ -324,13 +324,24 @@ export function useBookingFlow() {
     }
   }, [bookingData]);
 
+  const releaseBookingSlot = useCallback(async (id: string, reason: string) => {
+    try {
+      await fetch('/api/payments/release-slot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: id, reason }),
+      });
+    } catch {
+      /* best-effort */
+    }
+  }, []);
+
   // Initialize Razorpay payment
   const initiatePayment = useCallback(async (appointmentId: string) => {
     setLoading(true);
     setError(null);
 
     try {
-      // Create Razorpay order
       const orderResponse = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -340,6 +351,7 @@ export function useBookingFlow() {
       const orderData = await orderResponse.json();
 
       if (!orderResponse.ok) {
+        await releaseBookingSlot(appointmentId, 'order_create_failed');
         throw new Error(orderData.error || 'Failed to create payment order');
       }
 
@@ -393,7 +405,8 @@ export function useBookingFlow() {
         },
         modal: {
           ondismiss: () => {
-            setError('Payment cancelled');
+            void releaseBookingSlot(appointmentId, 'checkout_dismissed');
+            setError('Payment cancelled. This time slot is free again.');
             setLoading(false);
           },
         },
@@ -401,13 +414,14 @@ export function useBookingFlow() {
 
       const razorpay = new (window as any).Razorpay(options);
       razorpay.open();
+      return;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Payment initialization failed';
       setError(message);
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, releaseBookingSlot]);
 
   return {
     bookingData,

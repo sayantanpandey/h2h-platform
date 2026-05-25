@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { format, parseISO, isToday, isTomorrow, isPast } from 'date-fns';
+import { AppointmentsAdminSkeleton, StackedCardsSkeleton } from '@/components/admin/AdminSkeletons';
+import { DailyJoinButton } from '@/components/video/DailyJoinButton';
 
 interface Appointment {
   id: string;
@@ -109,7 +112,6 @@ export default function AppointmentsPage() {
   const [modeFilter, setModeFilter] = useState<'all' | 'online'>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [updating, setUpdating] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'appointments' | 'reschedule'>('appointments');
   const [rescheduleRequests, setRescheduleRequests] = useState<RescheduleRequest[]>([]);
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
@@ -125,6 +127,9 @@ export default function AppointmentsPage() {
   const [collisionError, setCollisionError] = useState<string | null>(null);
   const [endingId, setEndingId] = useState<string | null>(null);
   const [endConsultationSuccess, setEndConsultationSuccess] = useState(false);
+  /** Which status button is loading (avoids all buttons spinning together) */
+  const [statusUpdating, setStatusUpdating] = useState<{ id: string; action: string } | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ id: string; text: string; tone: 'success' | 'error' } | null>(null);
 
   useEffect(() => { fetchAppointments(); fetchRescheduleRequests(); }, []);
 
@@ -259,23 +264,57 @@ export default function AppointmentsPage() {
     }
   };
 
-  const updateStatus = async (appointmentId: string, newStatus: string) => {
-    setUpdating(appointmentId);
+  const updateStatus = async (appointmentId: string, newStatus: Appointment['status']) => {
+    setStatusUpdating({ id: appointmentId, action: newStatus });
+    setStatusMessage(null);
     try {
       const res = await fetch(`/api/admin/appointments/${appointmentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (res.ok) {
-        fetchAppointments();
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setAppointments((prev) =>
+          prev.map((a) =>
+            a.id === appointmentId
+              ? { ...a, status: (data.data?.status as Appointment['status']) || newStatus }
+              : a
+          )
+        );
+        const labels: Record<string, string> = {
+          confirmed: 'Confirmed',
+          completed: 'Completed',
+          cancelled: 'Cancelled',
+          no_show: 'Marked as no-show',
+          pending: 'Pending',
+        };
+        setStatusMessage({
+          id: appointmentId,
+          text: `Appointment ${labels[newStatus] || newStatus}.`,
+          tone: 'success',
+        });
+      } else {
+        setStatusMessage({
+          id: appointmentId,
+          text: data.error || 'Could not update status',
+          tone: 'error',
+        });
       }
     } catch (err) {
       console.error('Failed to update status:', err);
+      setStatusMessage({
+        id: appointmentId,
+        text: 'Network error — try again',
+        tone: 'error',
+      });
     } finally {
-      setUpdating(null);
+      setStatusUpdating(null);
     }
   };
+
+  const isStatusLoading = (aptId: string, action: string) =>
+    statusUpdating?.id === aptId && statusUpdating.action === action;
 
   // Filter appointments
   const filteredAppointments = appointments.filter(apt => {
@@ -321,11 +360,7 @@ export default function AppointmentsPage() {
   const ModeIcon = (mode: string) => MODE_ICONS[mode as keyof typeof MODE_ICONS] || Building2;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-      </div>
-    );
+    return <AppointmentsAdminSkeleton />;
   }
 
   return (
@@ -402,9 +437,7 @@ export default function AppointmentsPage() {
           </div>
 
           {rescheduleLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-            </div>
+            <StackedCardsSkeleton count={3} />
           ) : filteredReschedule.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-xl border">
               <CalendarClock className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -579,9 +612,10 @@ export default function AppointmentsPage() {
 
                               {/* Slots Grid */}
                               {slotPickerLoading ? (
-                                <div className="flex items-center justify-center py-8">
-                                  <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
-                                  <span className="ml-2 text-sm text-gray-500">Loading available slots...</span>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 py-4">
+                                  {Array.from({ length: 8 }).map((_, i) => (
+                                    <Skeleton key={i} className="h-10 rounded-lg" />
+                                  ))}
                                 </div>
                               ) : slotPickerSlots.length === 0 ? (
                                 <div className="text-center py-6 bg-white rounded-lg border border-dashed border-gray-200">
@@ -776,16 +810,15 @@ export default function AppointmentsPage() {
                     <span className="flex items-center gap-1.5 text-sm text-gray-600 capitalize">
                       <Icon className="h-4 w-4 text-gray-400" />{apt.mode.replace('_', ' ')}
                     </span>
-                    {apt.mode === 'online' && (apt.metadata?.admin_video_url || apt.google_meet_link) && (
-                      <a
-                        href={apt.metadata?.admin_video_url || apt.google_meet_link || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-xs font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
-                      >
-                        <Video className="h-3 w-3" /> Meet
-                      </a>
+                    {apt.mode === 'online' && apt.google_meet_link && (
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <DailyJoinButton
+                          appointmentId={apt.id}
+                          role="admin"
+                          label="Host"
+                          className="text-xs"
+                        />
+                      </span>
                     )}
                   </div>
 
@@ -824,19 +857,20 @@ export default function AppointmentsPage() {
                           <p><span className="text-gray-500">Time:</span> <span className="font-medium">{apt.start_time} - {apt.end_time}</span></p>
                           <p><span className="text-gray-500">Mode:</span> <span className="font-medium capitalize">{apt.mode.replace('_', ' ')}</span></p>
                           <p><span className="text-gray-500">Location:</span> <span className="font-medium">{centerName}</span></p>
-                          {apt.mode === 'online' && (apt.metadata?.admin_video_url || apt.google_meet_link) && (
+                          {apt.mode === 'online' && apt.google_meet_link && (
                             <p className="mt-2">
-                              <span className="text-gray-500">Meet Link (Admin host):</span>{' '}
-                              <a
-                                href={apt.metadata?.admin_video_url || apt.google_meet_link || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
-                              >
-                                <Video className="h-4 w-4" /> Join Video Call
-                              </a>
-                              <span className="block text-xs font-mono text-gray-500 truncate max-w-xs mt-0.5">{apt.metadata?.admin_video_url || apt.google_meet_link}</span>
-                              {(apt.metadata?.admin_video_url || apt.google_meet_link || '').includes('daily.co') && (
+                              <span className="text-gray-500 block mb-1">Video call (you join as host):</span>
+                              <DailyJoinButton
+                                appointmentId={apt.id}
+                                role="admin"
+                                variant="primary"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <span className="block text-xs text-gray-500 mt-2">
+                                Use this button only — do not copy the room URL from the browser bar (host token is required).
+                                You join as co-host, can start the call, and admit patients from the waiting list.
+                              </span>
+                              {apt.google_meet_link.includes('daily.co') && (
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -871,29 +905,110 @@ export default function AppointmentsPage() {
                           </>
                         )}
                         
-                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Update Status</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {apt.status !== 'confirmed' && (
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(apt.id, 'confirmed')} disabled={updating === apt.id} className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                              {updating === apt.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3 mr-1" />}Confirm
-                            </Button>
-                          )}
-                          {apt.status !== 'completed' && (
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(apt.id, 'completed')} disabled={updating === apt.id} className="text-green-600 border-green-200 hover:bg-green-50">
-                              {updating === apt.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3 mr-1" />}Complete
-                            </Button>
-                          )}
-                          {apt.status !== 'cancelled' && (
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(apt.id, 'cancelled')} disabled={updating === apt.id} className="text-red-600 border-red-200 hover:bg-red-50">
-                              {updating === apt.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <XCircle className="h-3 w-3 mr-1" />}Cancel
-                            </Button>
-                          )}
-                          {apt.status !== 'no_show' && (
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(apt.id, 'no_show')} disabled={updating === apt.id} className="text-gray-600 border-gray-200 hover:bg-gray-50">
-                              No Show
-                            </Button>
-                          )}
-                        </div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Appointment status</h4>
+                        {statusMessage?.id === apt.id && (
+                          <p
+                            className={`text-sm mb-3 px-3 py-2 rounded-lg ${
+                              statusMessage.tone === 'success'
+                                ? 'bg-green-50 text-green-800 border border-green-200'
+                                : 'bg-red-50 text-red-800 border border-red-200'
+                            }`}
+                          >
+                            {statusMessage.text}
+                          </p>
+                        )}
+                        {apt.status === 'completed' ? (
+                          <p className="text-sm text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2 flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                            This appointment is completed. No further status changes needed.
+                          </p>
+                        ) : apt.status === 'cancelled' ? (
+                          <p className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center gap-2">
+                            <XCircle className="h-4 w-4 shrink-0" />
+                            This appointment was cancelled.
+                          </p>
+                        ) : apt.status === 'no_show' ? (
+                          <p className="text-sm text-gray-700 bg-gray-100 border border-gray-200 rounded-lg px-3 py-2">
+                            Marked as no-show.
+                          </p>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {apt.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                  onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, 'confirmed'); }}
+                                  disabled={!!statusUpdating}
+                                >
+                                  {isStatusLoading(apt.id, 'confirmed') ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : (
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  )}
+                                  Confirm booking
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, 'cancelled'); }}
+                                  disabled={!!statusUpdating}
+                                  className="text-red-600 border-red-200"
+                                >
+                                  {isStatusLoading(apt.id, 'cancelled') ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : (
+                                    <XCircle className="h-3 w-3 mr-1" />
+                                  )}
+                                  Cancel
+                                </Button>
+                              </>
+                            )}
+                            {apt.status === 'confirmed' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, 'completed'); }}
+                                  disabled={!!statusUpdating}
+                                >
+                                  {isStatusLoading(apt.id, 'completed') ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : (
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  )}
+                                  Mark complete
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, 'cancelled'); }}
+                                  disabled={!!statusUpdating}
+                                  className="text-red-600 border-red-200"
+                                >
+                                  {isStatusLoading(apt.id, 'cancelled') ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : (
+                                    <XCircle className="h-3 w-3 mr-1" />
+                                  )}
+                                  Cancel
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, 'no_show'); }}
+                                  disabled={!!statusUpdating}
+                                  className="text-gray-600"
+                                >
+                                  {isStatusLoading(apt.id, 'no_show') ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : null}
+                                  No show
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 

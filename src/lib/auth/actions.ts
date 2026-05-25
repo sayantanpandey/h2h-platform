@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { AuthResult, AuthUser, UserRole } from './types';
+import { authCallbackUrl, getAppBaseUrl } from './app-url';
 
 /**
  * Register a new user with email and password
@@ -38,6 +39,7 @@ export async function registerUser(
     }
 
     // Create auth user
+    const baseUrl = await getAppBaseUrl();
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email.toLowerCase(),
       password,
@@ -47,7 +49,7 @@ export async function registerUser(
           phone: phone || null,
           role: 'patient' as UserRole,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://beta.healtohealth.in'}/auth/callback?type=signup`,
+        emailRedirectTo: authCallbackUrl(baseUrl, { type: 'signup' }),
       },
     });
 
@@ -205,11 +207,12 @@ export async function sendPasswordResetEmail(
 ): Promise<AuthResult> {
   try {
     const supabase = await createClient();
+    const baseUrl = await getAppBaseUrl();
 
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.toLowerCase(),
       {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://beta.healtohealth.in'}/auth/callback?type=recovery`,
+        redirectTo: authCallbackUrl(baseUrl, { type: 'recovery' }),
       }
     );
 
@@ -343,12 +346,13 @@ export async function resendVerificationEmail(
 ): Promise<AuthResult> {
   try {
     const supabase = await createClient();
+    const baseUrl = await getAppBaseUrl();
 
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: email.toLowerCase(),
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://beta.healtohealth.in'}/auth/callback?type=signup`,
+        emailRedirectTo: authCallbackUrl(baseUrl, { type: 'signup' }),
       },
     });
 
@@ -382,11 +386,15 @@ export async function signInWithOAuth(
   try {
     const supabase = await createClient();
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://beta.healtohealth.in';
+    const appUrl = await getAppBaseUrl();
+    const callbackUrl = authCallbackUrl(
+      appUrl,
+      redirectTo ? { redirect: redirectTo } : undefined
+    );
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${appUrl}/auth/callback${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`,
+        redirectTo: callbackUrl,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',

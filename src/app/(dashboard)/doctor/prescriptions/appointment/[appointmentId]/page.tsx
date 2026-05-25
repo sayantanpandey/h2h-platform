@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ArrowLeft, FileText, Plus, Loader2, X, Printer, Pencil, Calendar, Clock } from 'lucide-react';
+import { ProfileFormSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface AppointmentData {
   id: string;
@@ -248,11 +249,7 @@ export default function AppointmentPrescriptionsPage() {
   };
 
   if (loading && !appointment) {
-    return (
-      <div className="p-6 lg:p-8 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-      </div>
-    );
+    return <ProfileFormSkeleton />;
   }
 
   if (!appointment) {

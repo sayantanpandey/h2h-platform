@@ -14,9 +14,9 @@ import {
   Clock,
   Video,
   Building2,
-  Loader2,
   RefreshCw
 } from 'lucide-react';
+import { AdminContentSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface DashboardData {
   stats: {
@@ -87,11 +87,7 @@ export default function LocationAdminDashboard() {
   useEffect(() => { fetchAll(); }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-      </div>
-    );
+    return <AdminContentSkeleton variant="dashboard" />;
   }
 
   if (error || !data) {

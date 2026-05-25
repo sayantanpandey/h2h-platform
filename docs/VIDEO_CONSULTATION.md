@@ -87,4 +87,4 @@ Get the key from [dashboard.daily.co](https://dashboard.daily.co) → Developers
 - **Video creation failed** – Check logs for “Video room creation failed, using Jitsi fallback”. Payment still succeeds; Jitsi link is used.
 - **Patient stuck in waiting room** – Doctor must join with their host link (from dashboard) and admit the patient from the People/waiting list.
 - **Doctor "End for everyone"** – Use the "End for everyone" button on the doctor or super-admin appointments page (Daily.co only) to end the call for all participants.
-- **"This meeting is not available yet"** – You can join from 15 minutes before your slot. If the appointment is tomorrow or later, wait until the day/time of the appointment. Ensure your device clock is correct.
+- **"This meeting is not available yet"** – Usually means you opened the Daily room URL **without** the `?t=...` host token. **Doctor / super admin:** click **Start / Join as Host** in the dashboard (calls `/api/video/join-url`, refreshes the room, mints an owner token). Never paste the bare `h2hcare.daily.co/h2h-...` link. **Patients** see this until 15 minutes before the slot (by design).

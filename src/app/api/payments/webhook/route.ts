@@ -3,6 +3,7 @@
  * Handles payment events from Razorpay (payment.captured, payment.failed, refund.created)
  */
 
+import { releaseUnpaidAppointment } from '@/lib/release-unpaid-appointment';
 import { createAdminClient } from '@/lib/supabase/server';
 import { createVideoRoomUrls } from '@/lib/video-link';
 import { NextRequest, NextResponse } from 'next/server';
@@ -299,7 +300,6 @@ export async function POST(request: NextRequest) {
         const payment = payload.payload.payment?.entity;
         if (!payment) break;
 
-        // Update payment record
         await (supabase as any)
           .from('payments')
           .update({
@@ -308,15 +308,22 @@ export async function POST(request: NextRequest) {
           })
           .eq('razorpay_order_id', payment.order_id);
 
-        // Update appointment payment status
-        await (supabase as any)
+        const { data: failedApt } = await (supabase as any)
           .from('appointments')
-          .update({
-            payment_status: 'failed',
-          })
-          .eq('razorpay_order_id', payment.order_id);
+          .select('id, metadata')
+          .eq('razorpay_order_id', payment.order_id)
+          .single();
 
-        console.log('Payment failed:', payment.id);
+        if (failedApt?.id) {
+          await releaseUnpaidAppointment(supabase, failedApt.id, 'payment_failed');
+        } else {
+          await (supabase as any)
+            .from('appointments')
+            .update({ payment_status: 'failed', status: 'cancelled' })
+            .eq('razorpay_order_id', payment.order_id);
+        }
+
+        console.log('Payment failed — slot released:', payment.id);
         break;
       }
 

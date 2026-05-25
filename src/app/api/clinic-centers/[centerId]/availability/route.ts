@@ -3,6 +3,7 @@
  * Get availability for a specific date or date range
  */
 
+import { holdsSlot } from '@/lib/appointment-slot';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
@@ -96,15 +97,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Get existing appointments count per date
     const { data: appointmentCounts } = await supabase
       .from('appointments')
-      .select('appointment_date')
+      .select('appointment_date, status, payment_status, created_at')
       .eq('location_id', centerId)
       .gte('appointment_date', start.toISOString().split('T')[0])
       .lte('appointment_date', end.toISOString().split('T')[0])
-      .in('status', ['pending', 'confirmed']);
+      .not('status', 'eq', 'cancelled');
 
-    // Count appointments per date
     const appointmentCountMap = new Map<string, number>();
     (appointmentCounts || []).forEach((apt: any) => {
+      if (!holdsSlot(apt)) return;
       const dateStr = apt.appointment_date;
       appointmentCountMap.set(dateStr, (appointmentCountMap.get(dateStr) || 0) + 1);
     });

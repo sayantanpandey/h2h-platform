@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { AdminContentSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface Location {
   id: string;
@@ -215,11 +216,7 @@ export default function LocationsPage() {
   const getCentersForLocation = (locationId: string) => clinicCenters.filter(c => c.location_id === locationId);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-      </div>
-    );
+    return <AdminContentSkeleton variant="cards" />;
   }
 
   return (

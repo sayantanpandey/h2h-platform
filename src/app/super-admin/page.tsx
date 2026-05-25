@@ -8,11 +8,10 @@ import {
   Calendar, 
   IndianRupee,
   MapPin,
-  Loader2,
   RefreshCw,
   ArrowRight,
-  Database
 } from 'lucide-react';
+import { AdminContentSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface DashboardData {
   stats: {
@@ -47,28 +46,6 @@ interface DashboardData {
 export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [seeding, setSeeding] = useState(false);
-  const [seedResult, setSeedResult] = useState<string | null>(null);
-
-  async function seedDatabase() {
-    if (!confirm('This will seed the database with test data (locations, services, doctors, patients, appointments). Continue?')) return;
-    setSeeding(true);
-    setSeedResult(null);
-    try {
-      const res = await fetch('/api/admin/seed', { method: 'POST' });
-      const json = await res.json();
-      if (json.success) {
-        setSeedResult(`Seeded: ${json.summary.locations} locations, ${json.summary.services} services, ${json.summary.doctors} doctors, ${json.summary.patients} patients`);
-        fetchDashboard();
-      } else {
-        setSeedResult(`Error: ${json.error}`);
-      }
-    } catch (err: any) {
-      setSeedResult(`Error: ${err.message}`);
-    } finally {
-      setSeeding(false);
-    }
-  }
 
   async function fetchDashboard() {
     setLoading(true);
@@ -86,11 +63,7 @@ export default function AdminDashboard() {
   useEffect(() => { fetchDashboard(); }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-      </div>
-    );
+    return <AdminContentSkeleton variant="dashboard" />;
   }
 
   if (!data) {
@@ -118,20 +91,11 @@ export default function AdminDashboard() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={seedDatabase} disabled={seeding} className="flex items-center gap-2 px-3 py-2 text-sm text-white bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50 touch-manipulation">
-            {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
-            {seeding ? 'Seeding...' : 'Seed Database'}
-          </button>
           <button onClick={fetchDashboard} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 touch-manipulation">
             <RefreshCw className="h-4 w-4" /> Refresh
           </button>
         </div>
       </div>
-      {seedResult && (
-        <div className={`p-3 rounded-lg text-sm ${seedResult.startsWith('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-          {seedResult}
-        </div>
-      )}
 
       <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
         {statCards.map((stat) => (

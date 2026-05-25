@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
 import Link from 'next/link';
 import { 
   Star, Video, Building2, Home, MapPin, 
@@ -22,6 +22,7 @@ interface DoctorDetails {
   email: string;
   phone: string;
   avatar: string;
+  avatarUrl?: string | null;
   specializations: string[];
   qualifications: string[];
   experienceYears: number;
@@ -165,15 +166,13 @@ export default function DoctorDetailsPage() {
             <CardContent className="p-5">
               {/* Profile Header */}
               <div className="flex items-center gap-4 mb-4">
-                <Avatar className="h-14 w-14">
-                  <AvatarImage 
-                    src={doctor.avatar || `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(doctor.name)}&backgroundColor=b6e3f4,c0aede,d1d4f9`} 
-                    alt={doctor.name} 
-                  />
-                  <AvatarFallback className="text-lg bg-cyan-100 text-cyan-700">
-                    {doctor.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
+                <DoctorAvatar
+                  name={doctor.name}
+                  email={doctor.email}
+                  avatar={doctor.avatarUrl}
+                  size="lg"
+                  border
+                />
                 <div className="flex-1 min-w-0">
                   <h2 className="font-semibold text-gray-900 truncate">{doctor.name}</h2>
                   <p className="text-sm text-gray-500 truncate">{doctor.specializations?.[0] || 'Specialist'}</p>

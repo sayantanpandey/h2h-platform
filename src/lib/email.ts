@@ -4,6 +4,8 @@
  */
 
 import nodemailer from 'nodemailer';
+import { buildInvoiceEmailSection } from '@/lib/invoice';
+import type { InvoiceData } from '@/lib/invoice';
 
 // Create transporter - uses env vars for SMTP config
 function getTransporter() {
@@ -40,7 +42,14 @@ interface AppointmentEmailData {
   locationName?: string;
   locationCity?: string;
   googleMeetLink?: string | null;
+  razorpayPaymentId?: string | null;
+  razorpayOrderId?: string | null;
+  /** When set, embeds a Razorpay-style tax invoice in the patient email body */
+  invoicePayload?: InvoiceData | null;
 }
+
+const EMAIL_FONT =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-IN', {
@@ -76,6 +85,17 @@ function getModeLabel(mode: string): string {
 }
 
 function buildPatientEmailHTML(data: AppointmentEmailData): string {
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://h2hhealthcare.com'}/patient/appointments`;
+  const invoiceSection = data.invoicePayload
+    ? `
+      <tr>
+        <td style="padding:0 30px 8px;">
+          <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#0f172a;font-family:${EMAIL_FONT};">Your tax invoice</p>
+          ${buildInvoiceEmailSection(data.invoicePayload)}
+        </td>
+      </tr>`
+    : '';
+
   const meetSection = data.googleMeetLink
     ? `
     <tr>
@@ -99,37 +119,35 @@ function buildPatientEmailHTML(data: AppointmentEmailData): string {
 
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:30px 0;">
+<body style="margin:0;padding:0;background:#f4f6f8;font-family:${EMAIL_FONT};">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:30px 0;">
   <tr><td align="center">
-    <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
-      <!-- Header -->
-      <tr><td style="height:5px;background:linear-gradient(90deg,#0891b2,#06b6d4,#22d3ee);"></td></tr>
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid #e3e8ee;">
       <tr>
-        <td style="padding:30px 30px 20px;text-align:center;">
-          <h1 style="margin:0 0 4px;font-size:22px;color:#0891b2;font-weight:800;">H2H Healthcare</h1>
-          <p style="margin:0;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;">Physiotherapy & Wellness</p>
+        <td style="padding:28px 30px;text-align:center;background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);">
+          <h1 style="margin:0;font-size:26px;color:#ffffff;font-weight:700;font-family:${EMAIL_FONT};letter-spacing:-0.02em;">Payment Successful! ✓</h1>
         </td>
       </tr>
-      <!-- Greeting -->
       <tr>
-        <td style="padding:0 30px 20px;">
-          <h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Appointment Confirmed! ✅</h2>
-          <p style="margin:0;font-size:14px;color:#64748b;line-height:1.6;">
-            Hi <strong>${data.patientName}</strong>, your appointment has been confirmed and payment received. Here are your details:
+        <td style="padding:24px 30px 16px;">
+          <p style="margin:0 0 8px;font-size:15px;color:#0f172a;line-height:1.6;font-family:${EMAIL_FONT};">
+            Hi <strong>${data.patientName}</strong>,
+          </p>
+          <p style="margin:0;font-size:14px;color:#475569;line-height:1.6;font-family:${EMAIL_FONT};">
+            Your payment of <strong style="color:#0f172a;">${formatCurrency(data.amount)}</strong> has been received and your appointment is confirmed.
           </p>
         </td>
       </tr>
-      <!-- Details Card -->
       <tr>
         <td style="padding:0 30px 20px;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
             <tr>
               <td style="padding:20px;">
+                <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#528ff0;font-family:${EMAIL_FONT};">Appointment Details</p>
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="padding:6px 0;font-size:13px;color:#64748b;width:120px;">Service</td>
-                    <td style="padding:6px 0;font-size:13px;color:#0f172a;font-weight:600;">${data.serviceName}</td>
+                    <td style="padding:6px 0;font-size:13px;color:#64748b;width:120px;font-family:${EMAIL_FONT};">Service</td>
+                    <td style="padding:6px 0;font-size:13px;color:#0f172a;font-weight:600;font-family:${EMAIL_FONT};">${data.serviceName}</td>
                   </tr>
                   <tr>
                     <td style="padding:6px 0;font-size:13px;color:#64748b;">Doctor</td>
@@ -156,18 +174,30 @@ function buildPatientEmailHTML(data: AppointmentEmailData): string {
                     <td style="padding:6px 0;font-size:13px;color:#64748b;">Amount Paid</td>
                     <td style="padding:6px 0;font-size:14px;color:#0891b2;font-weight:700;">${formatCurrency(data.amount)}</td>
                   </tr>
+                  ${data.razorpayPaymentId ? `
+                  <tr>
+                    <td style="padding:6px 0;font-size:13px;color:#64748b;">Razorpay Payment ID</td>
+                    <td style="padding:6px 0;font-size:12px;color:#0f172a;font-weight:600;font-family:monospace;">${data.razorpayPaymentId}</td>
+                  </tr>` : ''}
                 </table>
               </td>
             </tr>
           </table>
         </td>
       </tr>
-      <!-- Meet Link -->
       ${meetSection}
-      <!-- Dashboard Link -->
+      ${invoiceSection}
       <tr>
-        <td style="padding:0 30px 20px;text-align:center;">
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://h2hhealthcare.com'}/patient/appointments" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;">
+        <td style="padding:0 30px 20px;">
+          <p style="margin:0;font-size:12px;color:#64748b;line-height:1.5;text-align:center;font-family:${EMAIL_FONT};">
+            Save or print the invoice above. You can download it anytime from your
+            <a href="${dashboardUrl}" style="color:#528ff0;font-weight:600;text-decoration:none;">patient dashboard</a>.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 30px 24px;text-align:center;">
+          <a href="${dashboardUrl}" style="display:inline-block;padding:12px 28px;background:#528ff0;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px;font-family:${EMAIL_FONT};">
             View in Dashboard
           </a>
         </td>
@@ -496,7 +526,7 @@ export async function sendAppointmentConfirmationEmails(data: AppointmentEmailDa
       await transporter.sendMail({
         from: `"H2H Healthcare" <${fromAddress}>`,
         to: data.patientEmail,
-        subject: `Appointment Confirmed - ${data.serviceName} with Dr. ${data.doctorName}`,
+        subject: `Payment Successful - ${data.serviceName} | H2H Healthcare`,
         html: buildPatientEmailHTML(data),
       });
       result.patientSent = true;

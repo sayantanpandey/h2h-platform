@@ -80,16 +80,16 @@ export default async function DashboardLayout({
         {/* Fixed Header */}
         <DashboardHeader user={userData} />
         
-        {/* Scrollable Content - grid loads after paint for fast TTI */}
-        <main className="flex-1 overflow-y-auto relative">
+        {/* Scrollable content — decorative grid stays behind (never over cards/forms) */}
+        <main className="flex-1 overflow-y-auto relative isolate bg-gray-50">
           <LazyAnimatedGrid
-            numSquares={20}
-            maxOpacity={0.1}
-            duration={3}
-            repeatDelay={1}
-            className="fill-cyan-500/30 stroke-cyan-500/30"
+            numSquares={12}
+            maxOpacity={0.05}
+            duration={4}
+            repeatDelay={1.5}
+            className="fill-cyan-500/20 stroke-cyan-500/20"
           />
-          <div className="relative z-10">
+          <div className="relative z-[1] min-h-full">
             {children}
           </div>
         </main>

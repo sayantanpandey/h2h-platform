@@ -11,6 +11,7 @@ import {
   FileText, RefreshCw, X, ChevronRight, Home, AlertCircle,
   CheckCircle2, XCircle, ClockIcon
 } from 'lucide-react';
+import { AppointmentListSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface RescheduleRequest {
   status: 'pending' | 'approved' | 'rejected';
@@ -394,9 +395,7 @@ function downloadHTML(){
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-        </div>
+        <AppointmentListSkeleton count={5} />
       ) : displayAppointments.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 py-20 text-center">
           <Calendar className="h-14 w-14 mx-auto mb-4 text-gray-200" />

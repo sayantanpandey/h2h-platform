@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DoctorCardsSkeleton } from '@/components/admin/AdminSkeletons';
+import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
 import Link from 'next/link';
 import { 
   ArrowLeft, Search, Star, Video, Building2, Home, MapPin, 
@@ -15,6 +17,8 @@ import {
 interface Doctor {
   id: string;
   name: string;
+  email?: string;
+  avatarUrl?: string | null;
   avatar: string;
   specializations: string[];
   qualifications: string[];
@@ -77,7 +81,7 @@ export default function PatientDoctorsPage() {
     : doctors;
 
   return (
-    <div className="p-3 md:p-6 lg:p-8">
+    <div className="p-3 md:p-6 lg:p-8 min-h-full bg-gray-50">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4 md:mb-6">
         <div>
@@ -95,7 +99,7 @@ export default function PatientDoctorsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="pl-10 h-10"
+            className="pl-10 h-10 bg-white"
           />
         </div>
         <select
@@ -124,7 +128,7 @@ export default function PatientDoctorsPage() {
       {loading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="border-gray-200 rounded-xl">
+            <Card key={i} className="bg-white border-gray-200 rounded-xl">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <Skeleton className="h-16 w-16 rounded-full" />
@@ -143,7 +147,7 @@ export default function PatientDoctorsPage() {
           ))}
         </div>
       ) : filteredDoctors.length === 0 ? (
-        <Card className="border-gray-200 rounded-xl">
+        <Card className="bg-white border-gray-200 rounded-xl">
           <CardContent className="py-16 text-center">
             <Stethoscope className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p className="text-gray-500 mb-2">No doctors found</p>
@@ -153,13 +157,15 @@ export default function PatientDoctorsPage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredDoctors.map((doctor) => (
-            <Card key={doctor.id} className="border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm transition-all">
+            <Card key={doctor.id} className="bg-white border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm transition-all">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3 mb-3">
-                  <img
-                    src={doctor.avatar || `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(doctor.name)}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
-                    alt={doctor.name}
-                    className="h-14 w-14 md:h-16 md:w-16 rounded-full border-2 border-cyan-100"
+                  <DoctorAvatar
+                    name={doctor.name}
+                    email={doctor.email}
+                    avatar={doctor.avatarUrl}
+                    size="lg"
+                    border
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 text-sm md:text-base truncate">{doctor.name}</h3>

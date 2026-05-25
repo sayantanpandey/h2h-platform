@@ -8,6 +8,7 @@
  * - Existing bookings
  */
 
+import { holdsSlot, timesOverlap } from '@/lib/appointment-slot';
 import { createAdminClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -313,10 +314,10 @@ export async function GET(request: NextRequest) {
     // Get existing bookings for this doctor on this date
     const { data: bookings, error: bookingsError } = await supabase
       .from('appointments')
-      .select('start_time, end_time, status')
+      .select('start_time, end_time, status, payment_status, created_at')
       .eq('doctor_id', doctorId)
       .eq('appointment_date', date)
-      .in('status', ['pending', 'confirmed']); // Only count active bookings
+      .not('status', 'eq', 'cancelled');
 
     if (bookingsError) {
       console.error('Error fetching bookings:', bookingsError);
@@ -329,13 +330,9 @@ export async function GET(request: NextRequest) {
       const slotStartMins = timeToMinutes(slotStart);
       const slotEndMins = timeToMinutes(slotEnd);
       
-      // Check if this slot overlaps with any booking
       const isBooked = (bookings as any[])?.some((booking: any) => {
-        const bookingStart = booking.start_time.substring(0, 5);
-        const bookingEnd = booking.end_time.substring(0, 5);
-        
-        // Check for overlap: slot starts before booking ends AND slot ends after booking starts
-        return slotStart < bookingEnd && slotEnd > bookingStart;
+        if (!holdsSlot(booking)) return false;
+        return timesOverlap(slotStart, slotEnd, booking.start_time, booking.end_time);
       });
 
       // Check if slot is blocked (legacy blocked_slots table)

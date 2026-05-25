@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ProfileFormSkeleton } from '@/components/admin/AdminSkeletons';
+import { ProfilePhotoPicker } from '@/components/shared/ProfilePhotoPicker';
 import { User, Loader2, Save, Phone, Mail, Briefcase, GraduationCap, FileText, DollarSign, Video, X } from 'lucide-react';
 
 interface ProfileData {
@@ -40,6 +42,7 @@ export default function DoctorProfilePage() {
   const [qualifications, setQualifications] = useState<string[]>([]);
   const [qualificationInput, setQualificationInput] = useState('');
   const [experienceYears, setExperienceYears] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState('');
 
   const fetchProfile = useCallback(async () => {
     setLoading(true);
@@ -56,6 +59,7 @@ export default function DoctorProfilePage() {
         setSpecializations(Array.isArray(p.specializations) ? p.specializations : []);
         setQualifications(Array.isArray(p.qualifications) ? p.qualifications : []);
         setExperienceYears(p.experienceYears ?? 0);
+        setAvatarUrl(p.avatarUrl ?? '');
       } else {
         setError(data.error ?? 'Failed to load profile');
       }
@@ -108,6 +112,7 @@ export default function DoctorProfilePage() {
           specializations,
           qualifications,
           experienceYears: Math.max(0, experienceYears),
+          avatarUrl: avatarUrl.trim() || undefined,
           // consultationFee, googleMeetEnabled: doctors cannot change — contact admin
         }),
       });
@@ -125,13 +130,7 @@ export default function DoctorProfilePage() {
   };
 
   if (loading && !profile) {
-    return (
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="flex items-center justify-center min-h-[300px]">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-        </div>
-      </div>
-    );
+    return <ProfileFormSkeleton />;
   }
 
   if (error && !profile) {
@@ -174,6 +173,15 @@ export default function DoctorProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="pb-4 border-b border-gray-100">
+              <ProfilePhotoPicker
+                value={avatarUrl}
+                onChange={setAvatarUrl}
+                name={fullName || profile?.fullName || 'Doctor'}
+                email={profile?.email}
+                userId={profile?.userId}
+              />
+            </div>
             <div>
               <Label>Full name</Label>
               <Input

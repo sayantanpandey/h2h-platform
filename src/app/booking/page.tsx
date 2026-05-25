@@ -666,6 +666,30 @@ function BookingPageContent() {
     });
   };
 
+  const releaseBookingSlot = async (appointmentId: string, reason: string) => {
+    try {
+      await fetch('/api/payments/release-slot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId, reason }),
+      });
+      if (selectedDoctor && selectedDate) {
+        const params = new URLSearchParams({
+          doctorId: selectedDoctor.id,
+          date: format(selectedDate, 'yyyy-MM-dd'),
+          duration: String(selectedDuration),
+          mode: selectedMode,
+        });
+        if (selectedService?.id) params.set('serviceId', selectedService.id);
+        const res = await fetch(`/api/slots?${params.toString()}`);
+        const data = await res.json();
+        if (data?.data?.slots) setTimeSlots(data.data.slots);
+      }
+    } catch {
+      /* slot release is best-effort */
+    }
+  };
+
   // Handle booking submission and payment
   const handleBookingSubmit = async () => {
     if (bookingSubmitLockRef.current) return;
@@ -674,6 +698,7 @@ function BookingPageContent() {
     setBookingError(null);
 
     let checkoutOpened = false;
+    let createdAppointmentId: string | null = null;
 
     try {
       if (!selectedLocation || !selectedService || !selectedDoctor || !selectedDate || !selectedTime) {
@@ -751,6 +776,7 @@ function BookingPageContent() {
       if (!appointmentId) {
         throw new Error('Failed to create appointment');
       }
+      createdAppointmentId = appointmentId;
 
       // Create Razorpay order
       const orderResponse = await fetch('/api/payments/create-order', {
@@ -762,6 +788,8 @@ function BookingPageContent() {
       const orderData = await orderResponse.json();
 
       if (!orderResponse.ok) {
+        await releaseBookingSlot(appointmentId, 'order_create_failed');
+        createdAppointmentId = null;
         throw new Error(orderData.error || 'Failed to create payment order');
       }
 
@@ -810,7 +838,10 @@ function BookingPageContent() {
         theme: { color: '#06b6d4' },
         modal: {
           ondismiss: () => {
-            setBookingError('Payment was cancelled');
+            if (createdAppointmentId) {
+              void releaseBookingSlot(createdAppointmentId, 'checkout_dismissed');
+            }
+            setBookingError('Payment cancelled. This time slot is free — you can try again or pick another slot.');
             bookingSubmitLockRef.current = false;
             setIsSubmitting(false);
           },
@@ -820,6 +851,9 @@ function BookingPageContent() {
       checkoutOpened = true;
     } catch (error) {
       console.error('Booking error:', error);
+      if (createdAppointmentId) {
+        await releaseBookingSlot(createdAppointmentId, 'checkout_error');
+      }
       setBookingError(error instanceof Error ? error.message : 'Booking failed');
       setIsSubmitting(false);
     } finally {

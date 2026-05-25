@@ -77,6 +77,8 @@ export async function GET(request: NextRequest) {
       return {
         id: doc.id,
         name: doc.users?.full_name || 'Doctor',
+        email: doc.users?.email || '',
+        avatarUrl: doc.users?.avatar_url || null,
         avatar: resolveDoctorAvatarSrc({
           name: doc.users?.full_name,
           email: doc.users?.email,

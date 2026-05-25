@@ -8,8 +8,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { Calendar, Loader2, User, Clock } from 'lucide-react';
+import { Calendar, User, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ListItemsSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface AppointmentItem {
   id: string;
@@ -74,9 +75,7 @@ export function DoctorNotificationDrawer({ open, onOpenChange, seenIds = new Set
         </SheetHeader>
         <div className="flex-1 overflow-y-auto min-h-0">
           {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-            </div>
+            <ListItemsSkeleton count={4} />
           ) : appointments.length === 0 ? (
             <div className="p-6 text-center">
               <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />

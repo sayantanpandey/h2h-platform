@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { DailyJoinButton } from '@/components/video/DailyJoinButton';
 import { 
   Calendar, 
   Clock, 
@@ -352,16 +353,28 @@ export default function DoctorDashboard() {
                         )}
                       </div>
                       {apt.googleMeetLink && apt.status === 'confirmed' && apt.mode === 'online' && (
-                        <a
-                          href={apt.googleMeetLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-[11px] font-medium text-green-700 hover:bg-green-100 transition-colors"
-                        >
-                          <Video className="h-3.5 w-3.5" />
-                          Join Meet
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                        <div className="mt-2">
+                          {apt.googleMeetLink.includes('daily.co') ? (
+                            <DailyJoinButton
+                              appointmentId={apt.id}
+                              role="doctor"
+                              variant="button"
+                              label="Join Meet"
+                              className="text-[11px] h-8 border-green-200 text-green-700 hover:bg-green-50"
+                            />
+                          ) : (
+                            <a
+                              href={apt.googleMeetLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-[11px] font-medium text-green-700 hover:bg-green-100 transition-colors"
+                            >
+                              <Video className="h-3.5 w-3.5" />
+                              Join Meet
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

@@ -5,14 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Mail, ShieldCheck, ArrowLeft, Stethoscope } from 'lucide-react';
+import { Loader2, Mail, ShieldCheck, ArrowLeft, Stethoscope, KeyRound } from 'lucide-react';
 
 type Step = 'email' | 'otp';
+type LoginMode = 'otp' | 'password';
 
 export default function DoctorLoginPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>('email');
+  const [loginMode, setLoginMode] = useState<LoginMode>('password');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,6 +29,36 @@ export default function DoctorLoginPage() {
     const t = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
     return () => clearTimeout(t);
   }, [resendTimer]);
+
+  const handlePasswordLogin = async () => {
+    if (!email.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/doctor/auth/login-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
+      if (data.success && data.verified) {
+        window.location.href = '/doctor';
+      } else {
+        setError(data.error || 'Invalid email or password');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSendOTP = async () => {
     if (!email.trim()) {
@@ -158,8 +191,31 @@ export default function DoctorLoginPage() {
                 </div>
                 <h1 className="text-[28px] font-semibold text-gray-900 mb-1">Doctor Login</h1>
                 <p className="text-[15px] text-gray-500">
-                  Enter your registered email to receive a one-time login code.
+                  {loginMode === 'password'
+                    ? 'Sign in with the email and temporary password sent when your account was created.'
+                    : 'Enter your registered email to receive a one-time login code.'}
                 </p>
+              </div>
+
+              <div className="flex gap-2 p-1 bg-gray-100 rounded-lg mb-4">
+                <button
+                  type="button"
+                  onClick={() => { setLoginMode('password'); setError(''); }}
+                  className={`flex-1 py-2 text-[13px] font-medium rounded-md transition-colors ${
+                    loginMode === 'password' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                  }`}
+                >
+                  Password
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLoginMode('otp'); setError(''); }}
+                  className={`flex-1 py-2 text-[13px] font-medium rounded-md transition-colors ${
+                    loginMode === 'otp' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                  }`}
+                >
+                  Email code
+                </button>
               </div>
 
               <div className="space-y-4">
@@ -172,12 +228,34 @@ export default function DoctorLoginPage() {
                       placeholder="doctor@example.com"
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setError(''); }}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          loginMode === 'password' ? handlePasswordLogin() : handleSendOTP();
+                        }
+                      }}
                       className="h-12 pl-10 text-[14px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500"
                       disabled={loading}
                     />
                   </div>
                 </div>
+
+                {loginMode === 'password' && (
+                  <div>
+                    <label className="block text-[13px] font-medium text-gray-700 mb-1.5">Password</label>
+                    <div className="relative">
+                      <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="password"
+                        placeholder="Temporary password from your welcome email"
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                        onKeyDown={(e) => e.key === 'Enter' && handlePasswordLogin()}
+                        className="h-12 pl-10 text-[14px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500"
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {error && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
@@ -186,12 +264,18 @@ export default function DoctorLoginPage() {
                 )}
 
                 <Button
-                  onClick={handleSendOTP}
-                  disabled={loading || !email.trim()}
+                  onClick={loginMode === 'password' ? handlePasswordLogin : handleSendOTP}
+                  disabled={loading || !email.trim() || (loginMode === 'password' && !password)}
                   className="w-full h-12 text-[14px] font-medium bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700"
                 >
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-                  Send Login Code
+                  {loading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : loginMode === 'password' ? (
+                    <KeyRound className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Mail className="mr-2 h-4 w-4" />
+                  )}
+                  {loginMode === 'password' ? 'Sign in' : 'Send Login Code'}
                 </Button>
               </div>
 
@@ -306,10 +390,10 @@ export default function DoctorLoginPage() {
                 <ShieldCheck className="h-5 w-5 text-white" />
               </div>
               <h3 className="text-[18px] font-semibold text-white mb-2">
-                Secure OTP Login
+                Secure Doctor Access
               </h3>
               <p className="text-[14px] text-gray-400">
-                Every login requires a fresh one-time password sent to your registered email. No passwords to remember.
+                Use your welcome email password, or request a one-time code anytime from the login page.
               </p>
             </div>
           </div>

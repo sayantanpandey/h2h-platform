@@ -7,11 +7,11 @@ import {
   Calendar,
   Mail,
   Phone,
-  Loader2,
   ExternalLink,
   Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ListItemsSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface ContactNotification {
   type: 'contact';
@@ -142,9 +142,7 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
-        </div>
+        <ListItemsSkeleton count={6} />
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-gray-50 p-12 text-center">
           <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />

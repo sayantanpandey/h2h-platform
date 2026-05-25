@@ -50,6 +50,7 @@ import {
   Filter,
   Download,
 } from 'lucide-react';
+import { TableBodySkeleton } from '@/components/admin/AdminSkeletons';
 import { createClient } from '@/lib/supabase/client';
 import { 
   ROLES, 
@@ -299,9 +300,7 @@ export default function UsersManagementPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
+            <TableBodySkeleton rows={8} />
           ) : (
             <Table>
               <TableHeader>

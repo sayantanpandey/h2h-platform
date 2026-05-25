@@ -23,6 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { FileText, Plus, RefreshCw, Loader2, X, Printer, Pencil } from 'lucide-react';
+import { PrescriptionsListSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface AppointmentOption {
   id: string;
@@ -337,9 +338,7 @@ export default function DoctorPrescriptionsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
+            <PrescriptionsListSkeleton />
           ) : list.length === 0 ? (
             <div className="py-12 text-center text-gray-500 text-sm">
               No prescriptions yet. Create one from a completed appointment.

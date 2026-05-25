@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
         .select('role')
         .eq('id', user.id)
         .single();
-      isSuperAdmin = (userRow?.role || '') === 'super_admin';
+      const role = (userRow?.role || '') as string;
+      isSuperAdmin = role === 'super_admin' || role === 'admin';
     }
 
     if (!doctor && !isSuperAdmin) {

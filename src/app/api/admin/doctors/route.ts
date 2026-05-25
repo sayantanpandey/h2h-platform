@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { ensureDoctorAuthUser, sendDoctorWelcomeEmail } from '@/lib/doctor-credentials';
+import { getAppBaseUrl } from '@/lib/auth/app-url';
 
 interface DoctorInput {
   email: string;
@@ -183,56 +185,97 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least one specialization is required' }, { status: 400 });
     }
 
-    // Check if user already exists
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user already exists (case-insensitive)
     const { data: existingUser } = await adminClient
       .from('users')
-      .select('id, role')
-      .eq('email', email)
-      .single();
-
-    let userId: string;
+      .select('id, role, email')
+      .ilike('email', normalizedEmail)
+      .maybeSingle();
 
     if (existingUser) {
-      // User exists, check if already a doctor
       const { data: existingDoctor } = await adminClient
         .from('doctors')
         .select('id')
-        .eq('user_id', (existingUser as any).id)
-        .single();
+        .eq('user_id', (existingUser as { id: string }).id)
+        .maybeSingle();
 
       if (existingDoctor) {
-        return NextResponse.json({ error: 'This user is already registered as a doctor' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'A doctor account already exists for this email address.' },
+          { status: 400 }
+        );
+      }
+    }
+
+    let userId: string;
+    let authUserIdForRollback: string | null = null;
+    let temporaryPassword: string | null = null;
+
+    try {
+      const authResult = await ensureDoctorAuthUser(
+        adminClient,
+        normalizedEmail,
+        full_name,
+        existingUser ? (existingUser as { id: string }).id : undefined
+      );
+      temporaryPassword = authResult.temporaryPassword;
+      if (authResult.authCreated) {
+        authUserIdForRollback = authResult.authUserId;
       }
 
-      userId = (existingUser as any).id;
+      if (existingUser) {
+        userId = (existingUser as { id: string }).id;
 
-      // Update user role to doctor
-      await adminClient
-        .from('users')
-        .update({ role: 'doctor', full_name, phone, avatar_url, location_id })
-        .eq('id', userId);
-    } else {
-      // Create new user with doctor role
-      const { data: newUser, error: userError } = await adminClient
-        .from('users')
-        .insert({
-          email,
-          full_name,
-          phone,
-          avatar_url,
-          role: 'doctor',
-          location_id,
-          is_active: true,
-        })
-        .select('id')
-        .single();
+        await adminClient
+          .from('users')
+          .update({
+            role: 'doctor',
+            full_name,
+            phone,
+            avatar_url,
+            location_id,
+            email: normalizedEmail,
+          })
+          .eq('id', userId);
+      } else {
+        const { data: newUser, error: userError } = await adminClient
+          .from('users')
+          .insert({
+            id: authResult.authUserId,
+            email: normalizedEmail,
+            full_name,
+            phone,
+            avatar_url,
+            role: 'doctor',
+            location_id,
+            is_active: true,
+          })
+          .select('id')
+          .single();
 
-      if (userError) {
-        console.error('Error creating user:', userError);
-        return NextResponse.json({ error: 'Failed to create user: ' + userError.message }, { status: 500 });
+        if (userError) {
+          console.error('Error creating user:', userError);
+          if (authUserIdForRollback) {
+            await adminClient.auth.admin.deleteUser(authUserIdForRollback);
+          }
+          return NextResponse.json({ error: 'Failed to create user: ' + userError.message }, { status: 500 });
+        }
+
+        userId = (newUser as { id: string }).id;
       }
-
-      userId = (newUser as any).id;
+    } catch (authErr) {
+      console.error('Doctor auth setup failed:', authErr);
+      return NextResponse.json(
+        {
+          error:
+            authErr instanceof Error
+              ? authErr.message
+              : 'Failed to set up doctor login credentials',
+        },
+        { status: 500 }
+      );
     }
 
     // Create doctor record
@@ -256,6 +299,10 @@ export async function POST(request: NextRequest) {
 
     if (doctorError) {
       console.error('Error creating doctor:', doctorError);
+      if (authUserIdForRollback) {
+        await adminClient.from('users').delete().eq('id', authUserIdForRollback);
+        await adminClient.auth.admin.deleteUser(authUserIdForRollback);
+      }
       return NextResponse.json({ error: 'Failed to create doctor: ' + doctorError.message }, { status: 500 });
     }
 
@@ -318,10 +365,28 @@ export async function POST(request: NextRequest) {
       .eq('id', doctorId)
       .single();
 
+    const appBaseUrl = await getAppBaseUrl();
+    const loginUrl = `${appBaseUrl}/doctor/login`;
+    const emailResult = temporaryPassword
+      ? await sendDoctorWelcomeEmail({
+          email: normalizedEmail,
+          fullName: full_name,
+          temporaryPassword,
+          loginUrl,
+        })
+      : { sent: false, reason: 'No password generated' };
+
+    const message = emailResult.sent
+      ? 'Doctor created successfully. Login credentials were emailed.'
+      : emailResult.reason === 'SMTP not configured'
+        ? 'Doctor created. SMTP is not configured — temporary password was logged on the server console.'
+        : `Doctor created, but the welcome email could not be sent (${emailResult.reason ?? 'unknown'}). Check server logs for the temporary password.`;
+
     return NextResponse.json({
       success: true,
       data: completeDoctor,
-      message: 'Doctor created successfully',
+      message,
+      credentialsEmailSent: emailResult.sent,
     }, { status: 201 });
   } catch (error) {
     console.error('Error in doctors POST:', error);

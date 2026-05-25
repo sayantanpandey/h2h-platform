@@ -31,6 +31,7 @@ import {
   Repeat,
   Percent,
 } from 'lucide-react';
+import { AnalyticsPageSkeleton } from '@/components/admin/AdminSkeletons';
 
 const COLORS = ['#06b6d4', '#14b8a6', '#0d9488', '#0f766e', '#115e59', '#134e4a'];
 
@@ -86,11 +87,7 @@ export default function AnalyticsPage() {
   }, [days]);
 
   if (loading && !data) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-      </div>
-    );
+    return <AnalyticsPageSkeleton />;
   }
 
   if (!data) {

@@ -39,10 +39,12 @@ export async function POST(request: NextRequest) {
     const adminClient = createAdminClient();
 
     // Check if this email belongs to a doctor
+    const normalizedEmail = email.toLowerCase().trim();
     const { data: user } = await (adminClient.from('users') as any)
       .select('id, email, full_name, role')
-      .eq('email', email.toLowerCase().trim())
-      .single();
+      .ilike('email', normalizedEmail)
+      .eq('role', 'doctor')
+      .maybeSingle();
 
     if (!user || (user as any).role !== 'doctor') {
       // Don't reveal whether the email exists for security
@@ -57,7 +59,7 @@ export async function POST(request: NextRequest) {
     const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 
     // Store OTP in shared store
-    setOTP(email, otp);
+    setOTP(normalizedEmail, otp);
 
     // Always console.log the OTP for development
     console.log(`\n========================================`);

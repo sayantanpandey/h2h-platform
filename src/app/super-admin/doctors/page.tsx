@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { ProfilePhotoPicker } from '@/components/shared/ProfilePhotoPicker';
+import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
+import { DoctorCardsSkeleton } from '@/components/admin/AdminSkeletons';
 
 interface SlotType {
   id?: string;
@@ -194,10 +197,6 @@ export default function DoctorsPage() {
   // Custom input states
   const [customSpecialization, setCustomSpecialization] = useState('');
   const [customQualification, setCustomQualification] = useState('');
-
-  // Avatar styles for DiceBear
-  const AVATAR_STYLES = ['lorelei', 'avataaars', 'bottts', 'micah', 'notionists', 'personas'];
-  const [selectedAvatarStyle, setSelectedAvatarStyle] = useState('lorelei');
 
   useEffect(() => {
     fetchDoctors();
@@ -403,12 +402,6 @@ export default function DoctorsPage() {
     }));
   };
 
-  const generateAvatar = () => {
-    const seed = formData.full_name || formData.email || Math.random().toString();
-    const url = `https://api.dicebear.com/9.x/${selectedAvatarStyle}/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
-    setFormData(prev => ({ ...prev, avatar_url: url }));
-  };
-
   // Validate time slots don't overlap within the same day
   const validateTimeSlots = (): string | null => {
     for (const dayAvail of formData.day_availability) {
@@ -506,7 +499,11 @@ export default function DoctorsPage() {
         throw new Error(data.error || `Failed to save doctor (${res.status})`);
       }
 
-      setSuccessMessage(editingDoctor ? 'Doctor updated successfully!' : 'Doctor created successfully!');
+      setSuccessMessage(
+        editingDoctor
+          ? 'Doctor updated successfully!'
+          : data.message || 'Doctor created successfully!'
+      );
       await fetchDoctors();
       
       // Close modal after short delay to show success message
@@ -606,9 +603,7 @@ export default function DoctorsPage() {
 
       {/* Doctors Grid — 1 col mobile, 2 tablet, 3 desktop */}
       {loading ? (
-        <div className="flex items-center justify-center py-12 min-h-[200px]">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-        </div>
+        <DoctorCardsSkeleton count={3} />
       ) : filteredDoctors.length === 0 ? (
         <div className="text-center py-10 sm:py-12 bg-white rounded-xl border border-gray-200 px-4">
           <User className="h-12 w-12 mx-auto text-gray-300 mb-4" />
@@ -624,10 +619,12 @@ export default function DoctorsPage() {
             <div key={doctor.id} className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 hover:shadow-lg transition-shadow min-w-0">
               {/* Header */}
               <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <img
-                  src={doctor.user.avatar_url || `https://api.dicebear.com/9.x/lorelei/svg?seed=${doctor.user.full_name}&backgroundColor=b6e3f4`}
-                  alt={doctor.user.full_name}
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-gray-100 shrink-0"
+                <DoctorAvatar
+                  name={doctor.user.full_name}
+                  email={doctor.user.email}
+                  avatar={doctor.user.avatar_url}
+                  size="lg"
+                  border
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -793,38 +790,13 @@ export default function DoctorsPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Profile Avatar</label>
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0">
-                        <img
-                          src={formData.avatar_url || `https://api.dicebear.com/9.x/lorelei/svg?seed=${formData.full_name || 'doctor'}&backgroundColor=b6e3f4`}
-                          alt="Avatar preview"
-                          className="w-20 h-20 rounded-full border-2 border-gray-200"
-                        />
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={selectedAvatarStyle}
-                            onChange={(e) => setSelectedAvatarStyle(e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          >
-                            {AVATAR_STYLES.map(style => (
-                              <option key={style} value={style}>{style.charAt(0).toUpperCase() + style.slice(1)}</option>
-                            ))}
-                          </select>
-                          <Button type="button" variant="outline" size="sm" onClick={generateAvatar}>
-                            Generate Avatar
-                          </Button>
-                        </div>
-                        <Input
-                          value={formData.avatar_url}
-                          onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-                          placeholder="Or paste custom avatar URL..."
-                          className="text-sm"
-                        />
-                      </div>
-                    </div>
+                    <ProfilePhotoPicker
+                      value={formData.avatar_url}
+                      onChange={(url) => setFormData({ ...formData, avatar_url: url })}
+                      name={formData.full_name || 'Doctor'}
+                      email={formData.email}
+                      userId={editingDoctor?.user.id}
+                    />
                   </div>
                 </div>
               </div>

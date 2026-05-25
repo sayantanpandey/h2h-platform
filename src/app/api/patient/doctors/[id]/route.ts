@@ -173,6 +173,7 @@ export async function GET(
       name: doctor.users?.full_name || 'Doctor',
       email: doctor.users?.email,
       phone: doctor.users?.phone,
+      avatarUrl: doctor.users?.avatar_url || null,
       avatar: resolveDoctorAvatarSrc({
         name: doctor.users?.full_name,
         email: doctor.users?.email,

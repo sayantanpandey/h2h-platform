@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Shield, Key, Mail } from 'lucide-react';
+import { AuthCheckSkeleton } from '@/components/admin/AdminSkeletons';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -68,11 +69,7 @@ export default function AdminLoginPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-      </div>
-    );
+    return <AuthCheckSkeleton />;
   }
 
   return (

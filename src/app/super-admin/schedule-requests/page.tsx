@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { StackedCardsSkeleton } from '@/components/admin/AdminSkeletons';
 import {
   Calendar,
   RefreshCw,
@@ -145,7 +146,7 @@ export default function ScheduleRequestsPage() {
       )}
 
       {loading ? (
-        <Skeleton className="h-64 rounded-xl" />
+        <StackedCardsSkeleton count={4} />
       ) : requests.length === 0 ? (
         <Card className="border-gray-200">
           <CardContent className="py-12 text-center text-gray-500">

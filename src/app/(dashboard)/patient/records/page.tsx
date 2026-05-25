@@ -14,6 +14,7 @@ import {
   Loader2, FileText, Calendar, Download, 
   Stethoscope, Pill, ClipboardList, User, Search, Eye, Printer
 } from 'lucide-react';
+import { TableBodySkeleton } from '@/components/admin/AdminSkeletons';
 
 interface MedicalRecord {
   id: string;
@@ -287,9 +288,7 @@ export default function PatientRecordsPage() {
 
       {/* Records - Table on desktop, Cards on mobile */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-        </div>
+        <TableBodySkeleton rows={8} />
       ) : filteredRecords.length === 0 ? (
         <Card className="border-gray-200 rounded-xl shadow-sm">
           <CardContent className="py-12 md:py-16 text-center">

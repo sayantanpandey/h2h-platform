@@ -23,6 +23,7 @@ import {
   PhoneOff,
 } from 'lucide-react';
 import Link from 'next/link';
+import { DailyJoinButton } from '@/components/video/DailyJoinButton';
 import {
   Dialog,
   DialogContent,
@@ -377,15 +378,24 @@ export default function DoctorAppointmentsPage() {
                     )}
                   </div>
                   {selected.googleMeetLink && selected.status === 'confirmed' && selected.mode === 'online' && (
-                    <div className="flex flex-wrap gap-2">
-                      <a
-                        href={selected.googleMeetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-sm font-medium text-emerald-700 hover:bg-emerald-100"
-                      >
-                        <Video className="h-4 w-4 shrink-0" /> Join Video Call <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                      </a>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {selected.googleMeetLink.includes('daily.co') ? (
+                        <DailyJoinButton
+                          appointmentId={selected.id}
+                          role="doctor"
+                          variant="primary"
+                          label="Start / Join as Host"
+                        />
+                      ) : (
+                        <a
+                          href={selected.googleMeetLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-sm font-medium text-emerald-700 hover:bg-emerald-100"
+                        >
+                          <Video className="h-4 w-4 shrink-0" /> Join Video Call <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                        </a>
+                      )}
                       {selected.googleMeetLink.includes('daily.co') && (
                         <Button
                           variant="outline"

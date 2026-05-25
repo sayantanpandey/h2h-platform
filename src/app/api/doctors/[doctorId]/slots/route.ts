@@ -3,6 +3,7 @@
  * Get available time slots for a specific doctor on a specific date
  */
 
+import { holdsSlot, timesOverlap } from '@/lib/appointment-slot';
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -117,10 +118,10 @@ export async function GET(
     // Get existing appointments for this doctor on this date
     const { data: existingAppointments, error: apptError } = await supabase
       .from('appointments')
-      .select('start_time, end_time')
+      .select('start_time, end_time, status, payment_status, created_at')
       .eq('doctor_id', doctorId)
       .eq('appointment_date', date)
-      .in('status', ['pending', 'confirmed']) as { data: Appointment[] | null; error: any };
+      .not('status', 'eq', 'cancelled') as { data: Appointment[] | null; error: any };
 
     if (apptError) {
       console.error('Error fetching appointments:', apptError);
@@ -156,11 +157,15 @@ export async function GET(
         const timeStr = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
         
         // Check if slot is already booked
-        const isBooked = existingAppointments?.some(appt => {
-          const apptStart = appt.start_time.substring(0, 5);
-          const apptEnd = appt.end_time.substring(0, 5);
-          return timeStr >= apptStart && timeStr < apptEnd;
-        }) || false;
+        const endMins = currentMinutes + slotDuration;
+        const slotEndStr = `${Math.floor(endMins / 60).toString().padStart(2, '0')}:${(endMins % 60).toString().padStart(2, '0')}`;
+        const isBooked =
+          existingAppointments?.some((appt) => {
+            if (!holdsSlot(appt as { status: string; payment_status?: string; created_at?: string })) {
+              return false;
+            }
+            return timesOverlap(timeStr, slotEndStr, appt.start_time, appt.end_time);
+          }) || false;
 
         slots.push({
           time: timeStr,

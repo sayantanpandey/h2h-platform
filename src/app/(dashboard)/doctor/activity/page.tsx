@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Activity, RefreshCw, Loader2, FileText, ExternalLink, Pencil, ArrowRight } from 'lucide-react';
+import { TableBodySkeleton } from '@/components/admin/AdminSkeletons';
 
 interface ActivityItem {
   id: string;
@@ -90,9 +91,7 @@ export default function DoctorActivityPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
+            <TableBodySkeleton rows={6} />
           ) : list.length === 0 ? (
             <div className="py-12 text-center text-gray-500 text-sm">
               No activity yet. Prescriptions you create will appear here.

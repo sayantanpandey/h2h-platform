@@ -29,7 +29,13 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { ROLES, ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
+import { ROLES, ROLE_DASHBOARDS, ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
+import {
+  PortalSidebarBrand,
+  portalVariantFromPath,
+  portalVariantFromRole,
+  type PortalBrandVariant,
+} from '@/components/shared/PortalSidebarBrand';
 
 interface NavItem {
   title: string;
@@ -98,29 +104,26 @@ function SidebarContent({
   onLogout,
   collapsed = false,
   user,
+  brandVariant,
+  brandHref,
 }: { 
   navItems: NavItem[]; 
   pathname: string;
   onLogout: () => void;
   collapsed?: boolean;
   user?: UserData;
+  brandVariant: PortalBrandVariant;
+  brandHref: string;
 }) {
   return (
     <div className="flex flex-col h-full bg-[#1a2e35]">
-      {/* Logo - Top section with rounded corners */}
-      <div className={cn("h-16 flex items-center shrink-0 border-b border-white/5", collapsed ? "px-3 justify-center" : "px-5")}>
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-teal-400">
-            <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#1a2e35]" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </div>
-          {!collapsed && (
-            <span className="font-semibold text-[17px] text-white tracking-tight">
-              Healthcare
-            </span>
-          )}
-        </Link>
+      {/* Logo */}
+      <div className={cn("h-16 flex items-center shrink-0 border-b border-white/5", collapsed ? "px-3 justify-center" : "px-4")}>
+        <PortalSidebarBrand
+          href={brandHref}
+          variant={brandVariant}
+          collapsed={collapsed}
+        />
       </div>
 
       {/* Navigation */}
@@ -233,6 +236,20 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
   };
 
   const navItems = getNavItems();
+  const brandVariant = user ? portalVariantFromRole(user.role) : portalVariantFromPath(pathname);
+  const brandHref = pathname.startsWith('/super-admin')
+    ? '/super-admin'
+    : pathname.startsWith('/admin')
+      ? '/admin'
+      : pathname.startsWith('/location-admin')
+        ? '/location-admin'
+        : pathname.startsWith('/doctor')
+          ? '/doctor'
+          : pathname.startsWith('/patient')
+            ? '/patient'
+            : user
+              ? ROLE_DASHBOARDS[user.role]
+              : '/patient';
 
   return (
     <>
@@ -256,6 +273,8 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
             pathname={pathname} 
             onLogout={handleLogout}
             user={user}
+            brandVariant={brandVariant}
+            brandHref={brandHref}
           />
         </SheetContent>
       </Sheet>
@@ -274,6 +293,8 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
             onLogout={handleLogout}
             collapsed={collapsed}
             user={user}
+            brandVariant={brandVariant}
+            brandHref={brandHref}
           />
         </div>
         {/* Collapse Toggle Button - fully visible, high z-index */}

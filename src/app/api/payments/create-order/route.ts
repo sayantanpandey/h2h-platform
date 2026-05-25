@@ -187,11 +187,16 @@ export async function POST(request: NextRequest) {
       };
     } catch (rzErr) {
       console.error('Razorpay orders.create failed:', rzErr);
+      const rzMsg = razorpayErrorMessage(rzErr);
+      const hint =
+        rzMsg.toLowerCase().includes('authentication') && process.env.NODE_ENV === 'development'
+          ? ' Check RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET in .env match your Razorpay Test keys, then restart npm run dev.'
+          : '';
       return NextResponse.json(
         {
           error:
             process.env.NODE_ENV === 'development'
-              ? razorpayErrorMessage(rzErr)
+              ? rzMsg + hint
               : 'Could not start payment. Please try again in a moment.',
         },
         { status: 502 }

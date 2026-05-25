@@ -4,6 +4,7 @@
  */
 
 import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { findSlotConflict, paymentHoldExpiresAt } from '@/lib/appointment-slot';
 import { generateJitsiLink } from '@/lib/video-link';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -24,7 +25,7 @@ interface BookingInput {
   patientPhone?: string;
 }
 
-// Check if slot is available (no overlapping bookings)
+// Check if slot is available (confirmed + unpaid checkout within payment hold window only)
 async function isSlotAvailable(
   supabase: any,
   doctorId: string,
@@ -32,12 +33,12 @@ async function isSlotAvailable(
   startTime: string,
   endTime: string
 ): Promise<boolean> {
-  const { data: existingBookings, error } = await supabase
+  const { data: overlapping, error } = await supabase
     .from('appointments')
-    .select('id')
+    .select('id, status, payment_status, created_at, start_time, end_time')
     .eq('doctor_id', doctorId)
     .eq('appointment_date', date)
-    .in('status', ['pending', 'confirmed'])
+    .not('status', 'eq', 'cancelled')
     .or(`and(start_time.lt.${endTime},end_time.gt.${startTime})`);
 
   if (error) {
@@ -45,7 +46,7 @@ async function isSlotAvailable(
     return false;
   }
 
-  return !existingBookings || existingBookings.length === 0;
+  return !findSlotConflict(overlapping || [], startTime, endTime);
 }
 
 // GET - Fetch user's bookings
@@ -301,6 +302,7 @@ export async function POST(request: NextRequest) {
         notes: notes || null,
         metadata: {
           booked_at: new Date().toISOString(),
+          payment_hold_expires_at: paymentHoldExpiresAt(new Date().toISOString()).toISOString(),
           user_agent: request.headers.get('user-agent'),
           center_id: (centerId && isValidUUID(centerId)) ? centerId : null,
           center_name: centerName || null,

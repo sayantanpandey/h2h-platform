@@ -8,6 +8,8 @@ import { createVideoRoomUrls } from '@/lib/video-link';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { sendAppointmentConfirmationEmails } from '@/lib/email';
+import { invoiceDataFromAppointment } from '@/lib/invoice';
+import Razorpay from 'razorpay';
 
 export async function POST(request: NextRequest) {
   try {
@@ -137,26 +139,56 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation emails (non-blocking - don't fail payment if email fails)
     if (appointment) {
-      const apt = appointment as any;
-      const doctorName = apt.doctor?.users?.full_name || 'Doctor';
-      // Strip "Dr." prefix if already present in DB name
-      const cleanDoctorName = doctorName.replace(/^Dr\.?\s*/i, '');
-      
+      const apt = appointment as Record<string, unknown>;
+      const doctorName =
+        (apt.doctor as { users?: { full_name?: string } })?.users?.full_name || 'Doctor';
+      const cleanDoctorName = String(doctorName).replace(/^Dr\.?\s*/i, '');
+
+      let paymentMethodLabel = 'Razorpay (Online)';
+      if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+        try {
+          const rz = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
+          });
+          const pay = await rz.payments.fetch(razorpay_payment_id);
+          const method = (pay as { method?: string }).method;
+          if (method) paymentMethodLabel = `Razorpay (${String(method).toUpperCase()})`;
+        } catch {
+          /* use default label */
+        }
+      }
+
+      const aptForInvoice = {
+        ...apt,
+        razorpay_payment_id,
+        payment_method_label: paymentMethodLabel,
+      };
+      const patientEmail = String(
+        (apt.patient as { email?: string })?.email || user.email || ''
+      ).trim();
+      const invoicePayload = patientEmail
+        ? invoiceDataFromAppointment(aptForInvoice)
+        : null;
+
       sendAppointmentConfirmationEmails({
-        appointmentId: apt.id,
-        patientName: apt.patient?.full_name || 'Patient',
-        patientEmail: apt.patient?.email || user.email || '',
+        appointmentId: String(apt.id),
+        patientName: String((apt.patient as { full_name?: string })?.full_name || 'Patient'),
+        patientEmail,
         doctorName: cleanDoctorName,
-        doctorEmail: apt.doctor?.users?.email || '',
-        serviceName: apt.service?.name || 'Consultation',
-        appointmentDate: apt.appointment_date,
-        startTime: apt.start_time,
-        endTime: apt.end_time,
-        mode: apt.mode,
-        amount: parseFloat(apt.amount) || 0,
-        locationName: apt.location?.name || undefined,
-        locationCity: apt.location?.city || undefined,
-        googleMeetLink: apt.google_meet_link || null,
+        doctorEmail: String((apt.doctor as { users?: { email?: string } })?.users?.email || ''),
+        serviceName: String((apt.service as { name?: string })?.name || 'Consultation'),
+        appointmentDate: String(apt.appointment_date),
+        startTime: String(apt.start_time),
+        endTime: String(apt.end_time),
+        mode: apt.mode as 'online' | 'offline' | 'home_visit',
+        amount: parseFloat(String(apt.amount)) || 0,
+        locationName: (apt.location as { name?: string })?.name || undefined,
+        locationCity: (apt.location as { city?: string })?.city || undefined,
+        googleMeetLink: (apt.google_meet_link as string) || null,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id,
+        invoicePayload,
       }).catch(err => console.error('Email sending failed:', err));
     }
 

@@ -11,6 +11,7 @@
     "db:reset": "npx tsx scripts/db-reset.ts",
     "db:list-users": "npx tsx scripts/list-users.ts",
     "db:promote-admin": "npx tsx scripts/promote-super-admin.ts",
+    "db:delete-user": "npx tsx scripts/delete-user.ts",
     "db:seed": "npx tsx scripts/seed-production.ts",
     "db:seed:demo": "npx tsx scripts/seed-data.ts",
     "optimize-images": "python scripts/optimize_images_to_webp.py --update-code",

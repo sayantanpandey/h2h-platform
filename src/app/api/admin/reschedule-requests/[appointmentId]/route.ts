@@ -8,6 +8,7 @@
  *  - reschedule: Admin picks a custom date/time (checks for collisions)
  */
 
+import { findSlotConflict } from '@/lib/appointment-slot';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 
@@ -40,26 +41,13 @@ async function checkTimeCollision(
   excludeAppointmentId: string
 ): Promise<any | null> {
   const { data: conflicts } = await (adminClient.from('appointments') as any)
-    .select('id, start_time, end_time, status, patient:patient_id(full_name)')
+    .select('id, start_time, end_time, status, payment_status, created_at, patient:patient_id(full_name)')
     .eq('doctor_id', doctorId)
     .eq('appointment_date', date)
-    .in('status', ['pending', 'confirmed'])
+    .not('status', 'eq', 'cancelled')
     .neq('id', excludeAppointmentId);
 
-  if (!conflicts || conflicts.length === 0) return null;
-
-  const newStart = startTime.substring(0, 5);
-  const newEnd = endTime.substring(0, 5);
-
-  for (const apt of conflicts) {
-    const existStart = (apt.start_time || '').substring(0, 5);
-    const existEnd = (apt.end_time || '').substring(0, 5);
-    // Overlap: new starts before existing ends AND new ends after existing starts
-    if (newStart < existEnd && newEnd > existStart) {
-      return apt;
-    }
-  }
-  return null;
+  return findSlotConflict(conflicts || [], startTime, endTime);
 }
 
 /**
