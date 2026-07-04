@@ -1,37 +1,38 @@
 'use client';
 
+import Image from "next/image";
 import Link from "next/link";
-import { Header, Footer } from "@/components/layout";
-import { Highlighter } from "@/components/ui/highlighter";
 import { ArrowRight } from "lucide-react";
-import {
-  ServiceSectionVisual,
-  type ServiceVisualId,
-} from "@/components/services/ServiceSectionVisual";
+import { Header, Footer } from "@/components/layout";
+import { DotPattern } from "@/components/ui/backgrounds";
+import { Highlighter } from "@/components/ui/highlighter";
 import { ServiceReadyCta } from "@/components/services/ServiceReadyCta";
-import {
-  SERVICE_PAGE_CONTENT,
-  SERVICE_READY_CTA,
-} from "@/constants/service-pages";
+import { SERVICE_READY_CTA } from "@/constants/service-pages";
+import { SERVICES_LIST } from "@/components/home/data";
 
-const services = Object.entries(SERVICE_PAGE_CONTENT).map(([id, content]) => ({
-  id,
-  title: content.title,
-  tagline: content.tagline,
-  description: content.intro,
-  details: content.details,
-}));
+// services list provided by `SERVICES_LIST` in data
 
 export default function ServicesPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[linear-gradient(180deg,#f8fbfd_0%,#ffffff_38%,#f8fbfd_100%)]">
       <Header />
-      
-      <main className="flex-1 pt-24">
-        {/* Hero Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-[1200px] mx-auto px-6">
-            <div className="text-center mb-8">
+
+      <main className="flex-1 pt-24 relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_top,rgba(6,182,212,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.08),transparent_25%)]" />
+        <DotPattern
+          className="left-0 top-0 h-56 w-56 opacity-35 [mask-image:radial-gradient(circle_at_center,white,transparent_72%)]"
+          color="#cad8e4"
+          cr={1.5}
+        />
+        <DotPattern
+          className="right-0 top-0 h-56 w-56 opacity-35 [mask-image:radial-gradient(circle_at_center,white,transparent_72%)]"
+          color="#cad8e4"
+          cr={1.5}
+        />
+
+        <section className="relative z-10 py-14 sm:py-16 lg:py-20">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-12">
+           <div className="text-center mb-8">
               {/* <p className="text-[13px] text-cyan-600 font-medium mb-3">Our Services</p> */}
               <h1 className="text-[36px] md:text-[48px] font-medium text-gray-900 tracking-tight leading-tight mb-6">
                 Care that fits{' '}
@@ -43,56 +44,44 @@ export default function ServicesPage() {
                 From pain relief and advanced rehabilitation to nutrition, mental wellness, yoga, and sports performance—every programme is thoughtfully designed around you.
               </p>
             </div>
+
+            <div className="mt-12 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              {SERVICES_LIST.map((service) => {
+                return (
+                  <article
+                    key={service.id}
+                    className="group flex min-h-[280px] flex-col rounded-md border border-slate-200/80 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(8,47,73,0.10)] sm:p-5"
+                  >
+                    <div className="overflow-hidden rounded-md">
+                      <Image
+                        src={service.image}
+                        alt={service.imageAlt || service.title}
+                        width={800}
+                        height={480}
+                        className="w-full h-40 object-cover"
+                        priority={false}
+                      />
+                    </div>
+                    <h2 className="mt-4 text-lg font-semibold leading-7 tracking-tight text-slate-900">
+                      {service.title}
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-600 flex-grow">
+                      {service.description}
+                    </p>
+                    <Link
+                      href={service.href}
+                      className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-cyan-600 transition-colors hover:text-cyan-700"
+                    >
+                      Learn more
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </section>
 
-        {/* Individual Service Sections - Alternating Layout */}
-        {services.map((service, index) => (
-          <section 
-            key={service.id} 
-            className={`py-24 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-          >
-            <div className="max-w-[1200px] mx-auto px-6">
-              <div className="grid lg:grid-cols-2 lg:items-stretch gap-12 lg:gap-20">
-                {/* Content Side - Always on left for even, right for odd */}
-                <div className={`flex flex-col justify-center ${index % 2 === 1 ? 'lg:order-2' : ''}`}>
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className="w-1 h-10 rounded-full bg-cyan-500" />
-                    <h2 className="text-[28px] md:text-[36px] font-semibold text-gray-900 tracking-tight">
-                      {service.title}
-                    </h2>
-                  </div>
-                  <p className="text-[17px] font-medium text-cyan-700 mb-4 leading-snug">
-                    {service.tagline}
-                  </p>
-                  <p className="text-[16px] text-gray-700 mb-4 leading-relaxed">
-                    {service.description}
-                  </p>
-                  <p className="text-[15px] text-gray-500 mb-8 leading-relaxed">
-                    {service.details}
-                  </p>
-                  
-                  <Link 
-                    href={`/services/${service.id}`} 
-                    className="inline-flex items-center gap-2 text-[14px] font-medium transition-colors text-cyan-600 hover:text-cyan-700"
-                  >
-                    Learn more
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-
-                {/* Illustration-only panel — no stock photos */}
-                <ServiceSectionVisual
-                  serviceId={service.id as ServiceVisualId}
-                  title={service.title}
-                  className={index % 2 === 1 ? 'lg:order-1' : undefined}
-                />
-              </div>
-            </div>
-          </section>
-        ))}
-
-        {/* Testimonials Section - Dark */}
         <section className="py-24 bg-gray-900 relative overflow-hidden">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:40px_40px]" />
           <div className="absolute top-20 left-20 w-64 h-64 bg-cyan-500/20 rounded-full blur-[100px]" />
@@ -102,17 +91,15 @@ export default function ServicesPage() {
             <div className="text-center mb-16">
               <p className="text-[13px] text-cyan-400 font-medium mb-3">Testimonials</p>
               <h2 className="text-[32px] md:text-[44px] font-medium text-white tracking-tight mb-4">
-                What Our{' '}
+                What Our{" "}
                 <span className="text-cyan-400">Patients Say</span>
               </h2>
               <p className="text-[15px] text-gray-400 max-w-xl mx-auto">
-                Everyday people—athletes, parents, and grandparents—sharing what changed for them
+                Everyday people-athletes, parents, and grandparents-sharing what changed for them
               </p>
             </div>
             
-            {/* Custom Testimonial Cards (Tweet-style) */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Testimonial 1 */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
                 <div className="flex items-start gap-3 mb-4">
                   <img 
@@ -131,7 +118,7 @@ export default function ServicesPage() {
                   </div>
                 </div>
                 <p className="text-gray-300 text-[14px] leading-relaxed mb-4">
-                  After my ACL injury, I thought my cricket career was over. The team at <span className="text-cyan-400">@H2HHealthcare</span> got me back on the field in record time. Their sports rehab program is world-class! 🏏
+                  After my ACL injury, I thought my cricket career was over. The team at <span className="text-cyan-400">@H2HHealthcare</span> got me back on the field in record time. Their sports rehab program is world-class!
                 </p>
                 <div className="flex items-center gap-4 text-gray-500 text-[12px]">
                   <span>Sports Rehabilitation</span>
@@ -140,7 +127,6 @@ export default function ServicesPage() {
                 </div>
               </div>
 
-              {/* Testimonial 2 */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
                 <div className="flex items-start gap-3 mb-4">
                   <img 
@@ -159,7 +145,7 @@ export default function ServicesPage() {
                   </div>
                 </div>
                 <p className="text-gray-300 text-[14px] leading-relaxed mb-4">
-                  Living with chronic back pain for 5 years was exhausting. <span className="text-cyan-400">@H2HHealthcare</span> pain management team changed my life. I can finally play with my kids again! 💚
+                  Living with chronic back pain for 5 years was exhausting. <span className="text-cyan-400">@H2HHealthcare</span> pain management team changed my life. I can finally play with my kids again!
                 </p>
                 <div className="flex items-center gap-4 text-gray-500 text-[12px]">
                   <span>Pain Management</span>
@@ -168,7 +154,6 @@ export default function ServicesPage() {
                 </div>
               </div>
 
-              {/* Testimonial 3 */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
                 <div className="flex items-start gap-3 mb-4">
                   <img 
@@ -187,7 +172,7 @@ export default function ServicesPage() {
                   </div>
                 </div>
                 <p className="text-gray-300 text-[14px] leading-relaxed mb-4">
-                  My father needed physiotherapy but couldn't travel. <span className="text-cyan-400">@H2HHealthcare</span> home visits were a blessing. Professional, caring, and so convenient! Highly recommend 🙏
+                  My father needed physiotherapy but couldn&apos;t travel. <span className="text-cyan-400">@H2HHealthcare</span> home visits were a blessing. Professional, caring, and so convenient! Highly recommend.
                 </p>
                 <div className="flex items-center gap-4 text-gray-500 text-[12px]">
                   <span>Home Physiotherapy</span>
@@ -198,6 +183,7 @@ export default function ServicesPage() {
             </div>
           </div>
         </section>
+
         <ServiceReadyCta
           title={SERVICE_READY_CTA.title}
           subtitle={SERVICE_READY_CTA.subtitle}

@@ -38,6 +38,7 @@ export const SERVICE_STOCK_IMAGES = {
 export const SERVICE_CATEGORY_IMAGES = {
   pain_relief_physiotherapy: CLINIC_IMAGES.physioManualTherapy,
   advanced_rehabilitation: CLINIC_IMAGES.balanceBosuRehab,
+  massage_recovery: CLINIC_IMAGES.clinicianPortrait,
   nutrition_lifestyle: SERVICE_STOCK_IMAGES.nutrition,
   mental_wellness: CLINIC_IMAGES.groupCoachingSession,
   therapeutic_yoga: CLINIC_IMAGES.therapeuticYogaLunge,
@@ -47,6 +48,7 @@ export const SERVICE_CATEGORY_IMAGES = {
 export const FEATURED_SERVICE_CARDS = {
   painPhysio: SERVICE_CATEGORY_IMAGES.pain_relief_physiotherapy,
   advancedRehab: SERVICE_CATEGORY_IMAGES.advanced_rehabilitation,
+  massageRecovery: SERVICE_CATEGORY_IMAGES.massage_recovery,
   therapeuticYoga: SERVICE_CATEGORY_IMAGES.therapeutic_yoga,
   sportsPerformance: SERVICE_CATEGORY_IMAGES.sports_performance,
 } as const;
@@ -127,6 +129,7 @@ export const PARTNER_LOGOS = [
   `${IMG}/partners/partner-06.webp`,
   `${IMG}/partners/partner-07.webp`,
   `${IMG}/partners/partner-08.webp`,
+  `${IMG}/partners/partner-09.webp`,
   `${IMG}/partners/partner-10.webp`,
 ] as const;
 

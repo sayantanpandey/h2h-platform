@@ -34,6 +34,14 @@ const CARDS = [
     image: FEATURED_SERVICE_CARDS.therapeuticYoga,
   },
   {
+    href: "/services/massage_recovery",
+    title: "Massage & Recovery",
+    accent: "rose" as const,
+    description:
+      "Specialized massage and recovery sessions to relieve muscle tension and support long-term healing.",
+    image: FEATURED_SERVICE_CARDS.massageRecovery,
+  },
+  {
     href: "/services/sports_performance",
     title: "Active Sports & Performance",
     accent: "cyan" as const,

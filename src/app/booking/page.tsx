@@ -95,6 +95,7 @@ interface SlotTypeOption {
 const CATEGORY_LABELS: Record<string, string> = {
   pain_relief_physiotherapy: 'Pain Relief & Physiotherapy',
   advanced_rehabilitation: 'Advanced Rehabilitation',
+  massage_recovery: 'Massage & Recovery',
   nutrition_lifestyle: 'Nutrition & Lifestyle',
   mental_wellness: 'Mental Wellness',
   therapeutic_yoga: 'Therapeutic Yoga',

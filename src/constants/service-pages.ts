@@ -132,6 +132,53 @@ export const SERVICE_PAGE_CONTENT: Record<string, ServicePageContent> = {
     color: 'blue',
   },
 
+  massage_recovery: {
+    title: 'Massage & Recovery',
+    tagline: 'Relax, Restore, and Recover with Expert Touch.',
+    intro:
+      'Our massage and recovery programs combine skilled manual therapy with targeted recovery strategies to ease tension, reduce pain, and restore optimal movement.',
+    details:
+      'Whether you need sports recovery, chronic muscle relief, or post-workout restoration, H2H provides gentle and effective hands-on care designed to accelerate healing and support long-term performance. Every session is tailored to your body, goals, and recovery timeline.',
+    benefitsTitle: 'Recovery You Can Feel',
+    benefits: [
+      'Targeted muscle release for faster recovery',
+      'Reduced tension, stiffness, and post-exercise soreness',
+      'Improved circulation to support healing',
+      'Professional care for athletes and everyday movement',
+      'Gentle techniques that balance comfort with results',
+      'A recovery plan built around your schedule and goals',
+    ],
+    process: [
+      {
+        step: '01',
+        title: 'Assess Muscle Tone',
+        description: 'We identify tightness, trigger points, and movement restrictions',
+      },
+      {
+        step: '02',
+        title: 'Targeted Touch',
+        description: 'Focused manual therapy to release tension and relieve pain',
+      },
+      {
+        step: '03',
+        title: 'Recovery Support',
+        description: 'Guided mobility and self-care recommendations',
+      },
+      {
+        step: '04',
+        title: 'Feel Better Sooner',
+        description: 'Follow-up guidance to keep recovery moving forward',
+      },
+    ],
+    cta: {
+      title: 'Book Your Recovery Session',
+      subtitle:
+        'Enjoy expert manual therapy and restore comfort quickly.',
+    },
+    image: SERVICE_CATEGORY_IMAGES.massage_recovery,
+    color: 'teal',
+  },
+
   nutrition_lifestyle: {
     title: 'Nutrition & Lifestyle Care',
     tagline: 'Fuel Your Body. Support Your Performance. Sustain Your Health.',

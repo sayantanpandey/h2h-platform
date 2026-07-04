@@ -15,6 +15,14 @@ export const SERVICE_CATEGORIES = {
     color: 'bg-blue-500',
     gradient: 'from-blue-500 to-indigo-500',
   },
+  massage_recovery: {
+    name: 'Massage & Recovery',
+    slug: 'massage-recovery',
+    description: 'Relax muscles, reduce pain, and accelerate healing.',
+    icon: 'Hands',
+    color: 'bg-fuchsia-500',
+    gradient: 'from-fuchsia-500 to-pink-500',
+  },
   nutrition_lifestyle: {
     name: 'Nutrition & Lifestyle Care',
     slug: 'nutrition-lifestyle',
@@ -67,6 +75,10 @@ export const DEFAULT_SERVICES = [
   { name: 'Post-Surgery Rehabilitation', slug: 'post-surgery-rehabilitation', category: 'advanced_rehabilitation', description: 'Comprehensive rehabilitation after orthopedic surgeries', duration_minutes: 60, tier1_price: 1800, tier2_price: 1200, online_available: false, offline_available: true, home_visit_available: true },
   { name: 'Stroke Rehabilitation', slug: 'stroke-rehabilitation', category: 'advanced_rehabilitation', description: 'Specialized physiotherapy for stroke recovery', duration_minutes: 60, tier1_price: 2000, tier2_price: 1500, online_available: false, offline_available: true, home_visit_available: true },
   { name: 'ACL Reconstruction Rehab', slug: 'acl-reconstruction-rehab', category: 'advanced_rehabilitation', description: 'Specialized ACL reconstruction recovery program', duration_minutes: 60, tier1_price: 1800, tier2_price: 1400, online_available: false, offline_available: true, home_visit_available: true },
+  
+  // Massage & Recovery
+  { name: 'Therapeutic Massage Therapy', slug: 'therapeutic-massage-therapy', category: 'massage_recovery', description: 'Deep tissue and sports massage to ease muscle tension and support recovery', duration_minutes: 60, tier1_price: 1500, tier2_price: 1000, online_available: false, offline_available: true, home_visit_available: true },
+  { name: 'Recovery & Soft Tissue Release', slug: 'recovery-soft-tissue-release', category: 'massage_recovery', description: 'Precise manual therapy to accelerate healing and restore mobility', duration_minutes: 60, tier1_price: 1600, tier2_price: 1100, online_available: false, offline_available: true, home_visit_available: true },
   
   // Nutrition & Lifestyle Care
   { name: 'Sports Nutrition Consultation', slug: 'sports-nutrition-consultation', category: 'nutrition_lifestyle', description: 'Personalized nutrition plans for athletes', duration_minutes: 45, tier1_price: 1500, tier2_price: 1000, online_available: true, offline_available: true, home_visit_available: false },

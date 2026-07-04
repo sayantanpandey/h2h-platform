@@ -6,7 +6,7 @@ export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancell
 
 export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
 
-export type ServiceCategory = 'pain_relief_physiotherapy' | 'advanced_rehabilitation' | 'nutrition_lifestyle' | 'mental_wellness' | 'therapeutic_yoga' | 'sports_performance' | 'digital_health';
+export type ServiceCategory = 'pain_relief_physiotherapy' | 'advanced_rehabilitation' | 'massage_recovery' | 'nutrition_lifestyle' | 'mental_wellness' | 'therapeutic_yoga' | 'sports_performance' | 'digital_health';
 
 export type NotificationType = 'whatsapp' | 'sms' | 'email';
 

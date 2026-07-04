@@ -43,7 +43,7 @@ export const ConsultationMode = {
 
 export type ConsultationModeType = typeof ConsultationMode[keyof typeof ConsultationMode];
 
-// Service Categories (7 categories)
+// Service Categories (8 categories)
 export const ServiceCategory = {
   PAIN_RELIEF_PHYSIOTHERAPY: 'pain_relief_physiotherapy',
   ADVANCED_REHABILITATION: 'advanced_rehabilitation',
@@ -52,6 +52,7 @@ export const ServiceCategory = {
   THERAPEUTIC_YOGA: 'therapeutic_yoga',
   SPORTS_PERFORMANCE: 'sports_performance',
   DIGITAL_HEALTH: 'digital_health',
+  MASSAGE_RECOVERY: 'massage_recovery',
 } as const;
 
 export type ServiceCategoryType = typeof ServiceCategory[keyof typeof ServiceCategory];
@@ -65,6 +66,7 @@ export const ServiceCategoryLabels: Record<ServiceCategoryType, string> = {
   therapeutic_yoga: 'Therapeutic Yoga & Wellness',
   sports_performance: 'Sports Performance & Athlete Development',
   digital_health: 'Digital Health & Web Solutions',
+  massage_recovery: 'Massage & Recovery',
 };
 
 // Location Tiers

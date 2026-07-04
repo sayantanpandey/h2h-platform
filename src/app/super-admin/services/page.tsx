@@ -19,6 +19,7 @@ interface Service {
 const CATEGORIES = [
   { value: 'pain_relief_physiotherapy', label: 'Pain Relief & Physiotherapy Care' },
   { value: 'advanced_rehabilitation', label: 'Advanced Rehabilitation & Recovery' },
+  { value: 'massage_recovery', label: 'Massage & Recovery' },
   { value: 'nutrition_lifestyle', label: 'Nutrition & Lifestyle Care' },
   { value: 'mental_wellness', label: 'Mental Wellness & Performance Care' },
   { value: 'therapeutic_yoga', label: 'Therapeutic Yoga & Wellness' },

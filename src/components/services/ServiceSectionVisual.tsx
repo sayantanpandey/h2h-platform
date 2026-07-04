@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 export type ServiceVisualId =
   | 'pain_relief_physiotherapy'
   | 'advanced_rehabilitation'
+  | 'massage_recovery'
   | 'nutrition_lifestyle'
   | 'mental_wellness'
   | 'therapeutic_yoga'
@@ -137,6 +138,36 @@ function RehabVisual({ title }: { title: string }) {
             <div className="h-full w-[62%] rounded-full bg-blue-500" />
           </div>
           <div className="mt-1.5 text-[10px] text-gray-400">Week 4 of ~12 · H2H Healthcare</div>
+        </div>
+      </div>
+    </PanelFrame>
+  );
+}
+
+function RecoveryVisual({ title }: { title: string }) {
+  const steps = [
+    'Assessment',
+    'Manual therapy',
+    'Release',
+    'Recovery plan',
+  ];
+
+  return (
+    <PanelFrame className="from-rose-50/90 via-fuchsia-50/70 to-pink-50/40">
+      <div className="w-full max-w-[380px] rounded-3xl border border-white/90 bg-white/90 p-6 shadow-xl">
+        <p className="mb-6 text-center text-[12px] font-semibold uppercase tracking-[0.18em] text-fuchsia-700">{title}</p>
+        <div className="grid gap-3">
+          {steps.map((step, index) => (
+            <div key={step} className="flex items-center gap-3 rounded-2xl bg-pink-50/90 p-3 shadow-sm ring-1 ring-pink-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-fuchsia-500 text-[13px] font-semibold text-white shadow-sm">
+                {index + 1}
+              </div>
+              <span className="text-[13px] font-medium text-fuchsia-900">{step}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 rounded-2xl bg-fuchsia-100/80 p-4 text-center text-[12px] leading-relaxed text-fuchsia-800">
+          Gentle, expert touch that helps you move easier and recover faster.
         </div>
       </div>
     </PanelFrame>
@@ -364,6 +395,7 @@ export function ServiceSectionVisual({
       {serviceId === 'mental_wellness' && <MentalVisual title={title} />}
       {serviceId === 'therapeutic_yoga' && <YogaVisual title={title} />}
       {serviceId === 'sports_performance' && <SportsVisual title={title} />}
+      {serviceId === 'massage_recovery' && <RecoveryVisual title={title} />}
       {serviceId === 'digital_health' && <DigitalVisual title={title} />}
     </div>
   );

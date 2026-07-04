@@ -24,9 +24,9 @@ const leadershipTeam = [
     role: 'Sports Physiotherapist',
     image: ABOUT_IMAGES.teamAkshat,
     highlights: [
-      'On-field coverage — 38th National Games (Uttarakhand) & U-22 Asian Boxing Championship selection trials',
+      'On-field coverage - 38th National Games (Uttarakhand), U-22 Asian Boxing Championship Selection Trials & Himachal Pradesh Cricket Association (HPCA) Tournament',
       'SAI National Centre of Excellence — rehab & load management across boxing, hockey, gymnastics & more',
-      'First-rank BPT scholar; pursuing MPT (Sports) with EMG-informed return-to-play & performance focus',
+      'Passionate about empowering athletes through science-backed rehabilitation, injury prevention, and performance-focused care.',
     ],
   },
   {

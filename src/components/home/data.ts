@@ -5,13 +5,17 @@ import {
   Leaf,
   Video,
   Calendar,
+  CalendarDays,
+  Handshake,
   MapPin,
+  MapPinned,
   Phone,
   Users,
+  UsersRound,
   Award,
   Trophy,
 } from "lucide-react";
-import { MARKETING_IMAGES, PARTNER_LOGOS } from "@/constants/marketing-images";
+import { MARKETING_IMAGES, PARTNER_LOGOS, SERVICE_CATEGORY_IMAGES } from "@/constants/marketing-images";
 
 export const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Activity,
@@ -72,11 +76,92 @@ export const testimonials = [
   },
 ];
 
-/** Partner marks for the home marquee (`public/images/partners`) */
-export const trustedPartnerLogos = PARTNER_LOGOS.map((src) => ({
-  src,
-  alt: 'Partner organisation logo',
-}));
+/** Partner collaboration cards for the homepage showcase */
+export const trustedPartnerLogos = [
+  {
+  src: PARTNER_LOGOS[0],
+  alt: "TSAF logo",
+  title: "TSAF",
+  description: "Endurance and performance support.",
+},
+{
+  src: PARTNER_LOGOS[1],
+  alt: "Indian Mountaineering Foundation logo",
+  title: "Indian Mountaineering Foundation",
+  description: "Athlete conditioning and wellness support.",
+},
+{
+  src: PARTNER_LOGOS[2],
+  alt: "Cricket Association of Bengal crest",
+  title: "Cricket Association of Bengal",
+  description: "Performance support for competitive cricket.",
+},
+{
+  src: PARTNER_LOGOS[3],
+  alt: "BCCI logo",
+  title: "The Board of Control for Cricket in India",
+  description: "Supporting cricket education and officiating.",
+},
+{
+  src: PARTNER_LOGOS[4],
+  alt: "Archery Association of India logo",
+  title: "Archery Association of India",
+  description: "Athlete care and performance support.",
+},
+{
+  src: PARTNER_LOGOS[5],
+  alt: "TFA football crest",
+  title: "TFA",
+  description: "Football recovery and performance.",
+},
+{
+  src: PARTNER_LOGOS[6],
+  alt: "Jamshedpur FC logo",
+  title: "Jamshedpur FC",
+  description: "Sports science and rehabilitation.",
+},
+{
+  src: PARTNER_LOGOS[7],
+  alt: "India Football crest",
+  title: "All India Football Federation",
+  description: "Football wellness and performance.",
+},
+{
+  src: PARTNER_LOGOS[8],
+  alt: "SAI logo",
+  title: "Sports Authority of India",
+  description: "Event Support & Sports Science Services.",
+},
+{
+  src: PARTNER_LOGOS[9],
+  alt: "Indian Kayaking and Canoeing Association logo",
+  title: "Indian Kayaking & Canoeing Association",
+  description: "Multisport athlete support.",
+},
+] as const;
+
+export const trustedPartnerStats = [
+  {
+    value: "08+",
+    label: "Events Participated",
+    icon: CalendarDays,
+  },
+  {
+    value: "10+",
+    label: "Organizations Engaged",
+    icon: UsersRound,
+  },
+  {
+    value: "15+",
+    label: "Initiatives Supported",
+    icon: Handshake,
+  },
+  {
+    value: "04+",
+    label: "States Covered",
+    icon: MapPinned,
+  },
+] as const;
 
 export const cities = [
   'Mumbai',
@@ -151,6 +236,74 @@ export const galleryItems = [
   { id: '6', img: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=420&fit=crop', height: 300, title: 'Consultation Room', description: 'Expert assessments' },
   { id: '7', img: 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=600&h=350&fit=crop', height: 250, title: 'Hydrotherapy', description: 'Water-based treatments' },
   { id: '8', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop', height: 280, title: 'Recovery Zone', description: 'Rest and recuperation' },
+];
+
+/** Services list (usable by the Services page and other UI) */
+export const SERVICES_LIST = [
+  {
+    id: 'pain_relief_physiotherapy',
+    title: 'Pain Relief & Physiotherapy Care',
+    description: 'Targeted treatment for pain management, injury recovery and mobility improvement.',
+    href: '/services/pain_relief_physiotherapy',
+    image: SERVICE_CATEGORY_IMAGES.pain_relief_physiotherapy,
+    imageAlt: 'Physiotherapy assessment',
+  },
+  {
+    id: 'advanced_rehabilitation',
+    title: 'Advanced Rehabilitation & Recovery',
+    description: 'Personalized rehab programs to restore movement, strength and function after injury or surgery.',
+    href: '/services/advanced_rehabilitation',
+    image: SERVICE_CATEGORY_IMAGES.advanced_rehabilitation,
+    imageAlt: 'Rehabilitation session',
+  },
+  {
+    id: 'massage_recovery',
+    title: 'Massage & Recovery',
+    description: 'Therapeutic massage to reduce muscle tension, improve circulation and promote faster recovery.',
+    href: '/services/massage_recovery',
+    image: SERVICE_CATEGORY_IMAGES.massage_recovery,
+    imageAlt: 'Therapeutic massage',
+  },
+  {
+    id: 'nutrition_lifestyle',
+    title: 'Nutrition & Lifestyle Care',
+    description: 'Diet and lifestyle guidance to support healing, energy and long-term well-being.',
+    href: '/services/nutrition_lifestyle',
+    image: SERVICE_CATEGORY_IMAGES.nutrition_lifestyle,
+    imageAlt: 'Nutrition guidance',
+  },
+  {
+    id: 'mental_wellness',
+    title: 'Mental Wellness & Performance Care',
+    description: 'Support for stress, focus, sleep and mental performance to help you feel your best.',
+    href: '/services/mental_wellness',
+    image: SERVICE_CATEGORY_IMAGES.mental_wellness,
+    imageAlt: 'Mental wellness',
+  },
+  {
+    id: 'therapeutic_yoga',
+    title: 'Therapeutic Yoga & Wellness',
+    description: 'Yoga-based therapies to improve flexibility, reduce stress and enhance overall well-being.',
+    href: '/services/therapeutic_yoga',
+    image: SERVICE_CATEGORY_IMAGES.therapeutic_yoga,
+    imageAlt: 'Therapeutic yoga',
+  },
+  {
+    id: 'sports_performance',
+    title: 'Sports Performance & Athlete Development',
+    description: 'Performance training, injury prevention and conditioning for athletes of all levels.',
+    href: '/services/sports_performance',
+    image: SERVICE_CATEGORY_IMAGES.sports_performance,
+    imageAlt: 'Sports performance',
+  },
+  {
+    id: 'digital_health',
+    title: 'Digital Health & Web Solutions',
+    description: 'Technology-driven solutions for better care, tracking and communication beyond the clinic.',
+    href: '/services/digital_health',
+    image: MARKETING_IMAGES.telehealth,
+    imageAlt: 'Telehealth',
+  },
 ];
 
 export const mapMarkers = [
